@@ -5,22 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clínica Jaznelly Lesso | Reservas</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <script type="module">
-    // ================================
-    // 🔹 Importar SDKs de Firebase
-    // ================================
+    // Importar SDKs de Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { 
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+      sendPasswordResetEmail, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // ================================
-    // 🔹 CONFIGURACIÓN FIREBASE
-    // ================================
+    // ⚠️ Reemplaza los valores con los de TU proyecto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDeCp5jG6IU1h4pXhlBfwXaVxVTE4E88sI",
       authDomain: "clinica-jaznelly-reservas.firebaseapp.com",
       projectId: "clinica-jaznelly-reservas",
-      storageBucket: "clinica-jaznelly-reservas.firebasestorage.app",
+      storageBucket: "clinica-jaznelly-reservas.appspot.com",
       messagingSenderId: "618003872167",
       appId: "1:618003872167:web:132f8ef43af15c3698de82",
       measurementId: "G-R63TRC8WB6"
@@ -31,13 +31,11 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // ================================
-    // 🔹 Autenticación
-    // ================================
     const loginDiv = document.getElementById("loginDiv");
     const mainDiv = document.getElementById("mainDiv");
     const citasList = document.getElementById("citasList");
 
+    // Iniciar sesión
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = e.target.email.value;
@@ -49,6 +47,7 @@
       }
     });
 
+    // Registrar usuario
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -60,6 +59,7 @@
       }
     });
 
+    // Reset contraseña
     document.getElementById("resetBtn").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       if (!email) return alert("Escribe tu correo para recuperar la contraseña");
@@ -71,6 +71,7 @@
       }
     });
 
+    // Cerrar sesión
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await signOut(auth);
     });
@@ -87,9 +88,7 @@
       }
     });
 
-    // ================================
-    // 🔹 Guardar reserva
-    // ================================
+    // Guardar cita
     document.getElementById("citaForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const nombre = e.target.nombre.value;
@@ -107,9 +106,7 @@
       }
     });
 
-    // ================================
-    // 🔹 Mostrar citas
-    // ================================
+    // Mostrar citas
     async function loadCitas() {
       citasList.innerHTML = "";
       const querySnapshot = await getDocs(collection(db, "citas"));
@@ -123,6 +120,7 @@
     }
   </script>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-blue-100 text-gray-800 font-sans">
 
   <!-- LOGIN -->
@@ -147,7 +145,7 @@
     </header>
 
     <main class="max-w-4xl mx-auto p-6">
-      <section class="glass p-6 rounded-xl mb-8 bg-white/70 backdrop-blur-md">
+      <section class="p-6 rounded-xl mb-8 bg-white/70 backdrop-blur-md">
         <h2 class="text-2xl font-semibold text-blue-700 mb-4">Reservar nueva cita</h2>
         <form id="citaForm" class="grid gap-4 md:grid-cols-2">
           <input name="nombre" type="text" placeholder="Nombre completo" required class="p-3 border rounded-lg">
@@ -163,7 +161,7 @@
         </form>
       </section>
 
-      <section class="glass p-6 rounded-xl bg-white/70 backdrop-blur-md">
+      <section class="p-6 rounded-xl bg-white/70 backdrop-blur-md">
         <h2 class="text-2xl font-semibold text-blue-700 mb-4">Citas registradas</h2>
         <ul id="citasList"></ul>
       </section>
