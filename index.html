@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login con Firebase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 320px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #user-info {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Iniciar sesión</h2>
+    <div id="login-form">
+      <input type="email" id="email" placeholder="Correo electrónico" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button id="login-btn">Ingresar</button>
+      <button id="register-btn">Registrar</button>
+    </div>
+
+    <div id="user-info">
+      <h3>Bienvenido, <span id="user-email"></span></h3>
+      <button id="logout-btn">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- SDK de Firebase -->
+  <script type="module">
+    // Importa funciones necesarias
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+    // Tu configuración (usa la tuya)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDeCp5j6GIU1h4pXh1BfwXaVxVTE4E88sI",
+      authDomain: "clinica-jaznelly-reservas.firebaseapp.com",
+      projectId: "clinica-jaznelly-reservas",
+      storageBucket: "clinica-jaznelly-reservas.appspot.com",
+      messagingSenderId: "618008372167",
+      appId: "1:618008372167:web:132f8ef43af15c3698de82",
+      measurementId: "G-R63TRC8WB6"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Referencias del DOM
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loginForm = document.getElementById('login-form');
+    const userInfo = document.getElementById('user-info');
+    const userEmail = document.getElementById('user-email');
+
+    // Login
+    loginBtn.addEventListener('click', async () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        alert("Error al iniciar sesión: " + error.message);
+      }
+    });
+
+    // Registro
+    registerBtn.addEventListener('click', async () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Usuario registrado con éxito");
+      } catch (error) {
+        alert("Error al registrar: " + error.message);
+      }
+    });
+
+    // Observador de autenticación
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginForm.style.display = 'none';
+        userInfo.style.display = 'block';
+        userEmail.textContent = user.email;
+      } else {
+        loginForm.style.display = 'block';
+        userInfo.style.display = 'none';
+      }
+    });
+
+    // Cerrar sesión
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth);
+    });
+  </script>
+</body>
+</html>
