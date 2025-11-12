@@ -2,102 +2,46 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login con Firebase</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      width: 320px;
-      text-align: center;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #user-info {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>Iniciar sesión</h2>
-    <div id="login-form">
-      <input type="email" id="email" placeholder="Correo electrónico" required>
-      <input type="password" id="password" placeholder="Contraseña" required>
-      <button id="login-btn">Ingresar</button>
-      <button id="register-btn">Registrar</button>
-    </div>
-
-    <div id="user-info">
-      <h3>Bienvenido, <span id="user-email"></span></h3>
-      <button id="logout-btn">Cerrar sesión</button>
-    </div>
-  </div>
-
-  <!-- SDK de Firebase -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clínica Jaznelly Lesso | Reservas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
-    // Importa funciones necesarias
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+    // ================================
+    // 🔹 Importar SDKs de Firebase
+    // ================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // Tu configuración (usa la tuya)
+    // ================================
+    // 🔹 CONFIGURACIÓN FIREBASE
+    // ================================
     const firebaseConfig = {
-      apiKey: "AIzaSyDeCp5j6GIU1h4pXh1BfwXaVxVTE4E88sI",
+      apiKey: "AIzaSyDeCp5jG6IU1h4pXhlBfwXaVxVTE4E88sI",
       authDomain: "clinica-jaznelly-reservas.firebaseapp.com",
       projectId: "clinica-jaznelly-reservas",
-      storageBucket: "clinica-jaznelly-reservas.appspot.com",
-      messagingSenderId: "618008372167",
-      appId: "1:618008372167:web:132f8ef43af15c3698de82",
+      storageBucket: "clinica-jaznelly-reservas.firebasestorage.app",
+      messagingSenderId: "618003872167",
+      appId: "1:618003872167:web:132f8ef43af15c3698de82",
       measurementId: "G-R63TRC8WB6"
     };
 
     // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // Referencias del DOM
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('login-btn');
-    const registerBtn = document.getElementById('register-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginForm = document.getElementById('login-form');
-    const userInfo = document.getElementById('user-info');
-    const userEmail = document.getElementById('user-email');
+    // ================================
+    // 🔹 Autenticación
+    // ================================
+    const loginDiv = document.getElementById("loginDiv");
+    const mainDiv = document.getElementById("mainDiv");
+    const citasList = document.getElementById("citasList");
 
-    // Login
-    loginBtn.addEventListener('click', async () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      const password = e.target.password.value;
       try {
         await signInWithEmailAndPassword(auth, email, password);
       } catch (error) {
@@ -105,34 +49,125 @@
       }
     });
 
-    // Registro
-    registerBtn.addEventListener('click', async () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
       try {
         await createUserWithEmailAndPassword(auth, email, password);
-        alert("Usuario registrado con éxito");
+        alert("Usuario registrado correctamente");
       } catch (error) {
         alert("Error al registrar: " + error.message);
       }
     });
 
-    // Observador de autenticación
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loginForm.style.display = 'none';
-        userInfo.style.display = 'block';
-        userEmail.textContent = user.email;
-      } else {
-        loginForm.style.display = 'block';
-        userInfo.style.display = 'none';
+    document.getElementById("resetBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      if (!email) return alert("Escribe tu correo para recuperar la contraseña");
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Correo de recuperación enviado");
+      } catch (error) {
+        alert("Error: " + error.message);
       }
     });
 
-    // Cerrar sesión
-    logoutBtn.addEventListener('click', () => {
-      signOut(auth);
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
     });
+
+    // Estado de autenticación
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        loginDiv.classList.add("hidden");
+        mainDiv.classList.remove("hidden");
+        loadCitas();
+      } else {
+        mainDiv.classList.add("hidden");
+        loginDiv.classList.remove("hidden");
+      }
+    });
+
+    // ================================
+    // 🔹 Guardar reserva
+    // ================================
+    document.getElementById("citaForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = e.target.nombre.value;
+      const telefono = e.target.telefono.value;
+      const motivo = e.target.motivo.value;
+      const tipo = e.target.tipo.value;
+      const fecha = e.target.fecha.value;
+      try {
+        await addDoc(collection(db, "citas"), { nombre, telefono, motivo, tipo, fecha });
+        alert("✅ Cita guardada correctamente");
+        e.target.reset();
+        loadCitas();
+      } catch (error) {
+        alert("Error al guardar: " + error.message);
+      }
+    });
+
+    // ================================
+    // 🔹 Mostrar citas
+    // ================================
+    async function loadCitas() {
+      citasList.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "citas"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        li.className = "p-3 bg-white rounded-lg shadow mb-2";
+        li.textContent = `${data.fecha} — ${data.nombre} (${data.tipo}) — ${data.motivo}`;
+        citasList.appendChild(li);
+      });
+    }
   </script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 text-gray-800 font-sans">
+
+  <!-- LOGIN -->
+  <div id="loginDiv" class="flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+      <h2 class="text-2xl font-bold text-blue-700 mb-4">Iniciar sesión</h2>
+      <form id="loginForm" class="space-y-4">
+        <input id="email" type="email" name="email" placeholder="Correo electrónico" required class="w-full p-3 border rounded-lg">
+        <input id="password" type="password" name="password" placeholder="Contraseña" required class="w-full p-3 border rounded-lg">
+        <button type="submit" class="w-full bg-blue-700 text-white py-2 rounded-lg hover:bg-blue-800">Ingresar</button>
+      </form>
+      <button id="registerBtn" class="w-full mt-3 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Registrar</button>
+      <button id="resetBtn" class="w-full mt-3 text-blue-600 hover:underline">¿Olvidaste tu contraseña?</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainDiv" class="hidden">
+    <header class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
+      <h1 class="text-xl font-bold text-blue-700">Clínica Jaznelly Lesso</h1>
+      <button id="logoutBtn" class="text-sm bg-blue-700 text-white px-3 py-1 rounded-lg hover:bg-blue-800">Cerrar sesión</button>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-6">
+      <section class="glass p-6 rounded-xl mb-8 bg-white/70 backdrop-blur-md">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-4">Reservar nueva cita</h2>
+        <form id="citaForm" class="grid gap-4 md:grid-cols-2">
+          <input name="nombre" type="text" placeholder="Nombre completo" required class="p-3 border rounded-lg">
+          <input name="telefono" type="tel" placeholder="Teléfono" required class="p-3 border rounded-lg">
+          <textarea name="motivo" placeholder="Motivo de consulta" required class="p-3 border rounded-lg md:col-span-2"></textarea>
+          <select name="tipo" required class="p-3 border rounded-lg">
+            <option value="normal">Consulta normal - $1000</option>
+            <option value="urgente">Urgente - $2000</option>
+            <option value="video">Videollamada - $200</option>
+          </select>
+          <input name="fecha" type="datetime-local" required class="p-3 border rounded-lg">
+          <button type="submit" class="md:col-span-2 bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-800">Guardar cita</button>
+        </form>
+      </section>
+
+      <section class="glass p-6 rounded-xl bg-white/70 backdrop-blur-md">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-4">Citas registradas</h2>
+        <ul id="citasList"></ul>
+      </section>
+    </main>
+  </div>
 </body>
 </html>
