@@ -3,570 +3,792 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dra. Jaznelly Lesso Zamora - Sistema de Citas</title>
+  <title>Dra. Jaznelly Lesso Zamora</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
     
-    * { font-family: 'Inter', sans-serif; }
+    * { 
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
     
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      background: #f8fafc;
     }
     
-    .glass {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+    .progress-bar {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      overflow: hidden;
     }
     
-    .fade-in { animation: fadeIn 0.4s ease-out; }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transition: width 0.3s ease;
     }
     
-    .calendar-day {
-      aspect-ratio: 1;
-      transition: all 0.2s;
-      min-height: 44px;
+    .step-indicator {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .step-indicator.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .step-indicator.inactive {
+      background: #e2e8f0;
+      color: #64748b;
+    }
+    
+    .step-indicator.completed {
+      background: #10b981;
+      color: white;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .option-card {
+      border: 2px solid #e2e8f0;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .option-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+    
+    .option-card.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    
+    .calendar-mini {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 14px;
       font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
     }
     
-    .calendar-day:hover:not(.disabled):not(.blocked) {
-      transform: scale(1.05);
-      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    .day-cell:hover:not(.disabled):not(.blocked) {
+      background: #f1f5f9;
     }
     
-    .calendar-day.selected {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-      color: white !important;
-      border-color: #667eea !important;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    .day-cell.selected {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-weight: 600;
     }
     
-    .calendar-day.blocked {
-      background: #fee2e2 !important;
-      color: #991b1b !important;
-      cursor: not-allowed !important;
+    .day-cell.disabled {
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+    
+    .day-cell.blocked {
+      background: #fee2e2;
+      color: #dc2626;
+      cursor: not-allowed;
       position: relative;
     }
     
-    .calendar-day.blocked::after {
-      content: '🚫';
+    .day-cell.blocked::after {
+      content: '×';
       position: absolute;
-      font-size: 0.6rem;
       top: 2px;
       right: 2px;
+      font-size: 10px;
+    }
+    
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
     }
     
     .time-slot {
-      transition: all 0.2s;
-      font-size: 0.875rem;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      text-align: center;
       font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
     }
     
     .time-slot:hover:not(.disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      border-color: #3b82f6;
+      background: #eff6ff;
     }
     
     .time-slot.selected {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-      color: white !important;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-color: transparent;
+      color: white;
     }
     
-    .gradient-bg {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .time-slot.disabled {
+      background: #f8fafc;
+      color: #cbd5e1;
+      cursor: not-allowed;
     }
     
     .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
       transition: all 0.3s;
     }
     
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
     }
     
-    .stat-card {
+    .btn-secondary {
+      background: white;
+      color: #475569;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      cursor: pointer;
       transition: all 0.3s;
     }
     
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    .btn-secondary:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      ring: 2px;
+      ring-color: #3b82f6;
     }
     
     @media (max-width: 640px) {
-      .calendar-day {
-        min-height: 40px;
-        font-size: 0.875rem;
+      .day-cell {
+        font-size: 12px;
       }
-      .time-slot {
-        font-size: 0.75rem;
-        padding: 0.5rem !important;
+      
+      .time-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="glass sticky top-0 z-50 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-            Dra. Jaznelly Lesso Zamora
-          </h1>
-          <p class="text-xs sm:text-sm text-gray-600 font-medium">Oftalmología y Retina</p>
-        </div>
-        <button id="btnAdmin" class="px-4 py-2 text-sm font-semibold text-white gradient-bg rounded-lg hover:shadow-lg transition">
-          Panel Admin
-        </button>
+  <!-- Header Fijo -->
+  <header class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold text-gray-900">Dra. Jaznelly Lesso</h1>
+        <p class="text-xs text-gray-500">Oftalmología</p>
       </div>
+      <button id="btnAdmin" class="text-sm text-blue-600 font-semibold">Admin</button>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+  <!-- Contenedor Principal -->
+  <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
     
-    <!-- Vista Principal: Reserva de Cita -->
-    <div id="vistaReserva" class="space-y-6 fade-in">
+    <!-- VISTA: Reservar Cita -->
+    <div id="vistaReserva">
       
-      <!-- Hero -->
-      <div class="text-center mb-8">
-        <h2 class="text-3xl sm:text-5xl font-bold text-white mb-3 drop-shadow-lg">Agenda tu consulta</h2>
-        <p class="text-white/90 text-lg">Selecciona el tipo de cita y el horario disponible</p>
+      <!-- Progreso -->
+      <div class="mb-8">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center gap-2">
+            <div class="step-indicator active" id="stepInd1">1</div>
+            <span class="text-sm font-medium text-gray-700">Tipo</span>
+          </div>
+          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+          <div class="flex items-center gap-2">
+            <div class="step-indicator inactive" id="stepInd2">2</div>
+            <span class="text-sm font-medium text-gray-400">Fecha</span>
+          </div>
+          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+          <div class="flex items-center gap-2">
+            <div class="step-indicator inactive" id="stepInd3">3</div>
+            <span class="text-sm font-medium text-gray-400">Hora</span>
+          </div>
+          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+          <div class="flex items-center gap-2">
+            <div class="step-indicator inactive" id="stepInd4">4</div>
+            <span class="text-sm font-medium text-gray-400">Datos</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar" style="width: 25%"></div>
+        </div>
       </div>
 
-      <!-- Tipo de Cita -->
-      <div class="glass rounded-3xl shadow-2xl p-6 sm:p-8">
-        <h3 class="font-bold text-gray-900 mb-6 text-lg flex items-center">
-          <span class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white mr-3">1</span>
-          Tipo de consulta
-        </h3>
-        <div class="grid md:grid-cols-3 gap-4">
-          <label class="relative cursor-pointer group">
-            <input type="radio" name="tipoCita" value="normal" class="peer sr-only" checked>
-            <div class="p-6 border-2 border-gray-200 rounded-2xl peer-checked:border-purple-600 peer-checked:bg-purple-50 transition-all hover:shadow-lg">
-              <div class="text-3xl mb-3">🏥</div>
-              <h4 class="font-bold text-gray-900 mb-2">Consulta Normal</h4>
-              <p class="text-sm text-gray-600 mb-3">L-V 10:00 AM - 2:00 PM</p>
-              <p class="text-xs text-gray-500 mb-3">Duración: 30 minutos</p>
-              <p class="text-2xl font-bold text-purple-600">$1,000</p>
+      <!-- Paso 1: Tipo de Consulta -->
+      <div id="paso1" class="fade-in">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Selecciona tu consulta</h2>
+        <p class="text-gray-600 mb-6">Elige el tipo de atención que necesitas</p>
+        
+        <div class="space-y-3">
+          <div class="option-card card p-4" data-tipo="normal">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-2xl">🏥</span>
+                  <h3 class="font-bold text-gray-900">Consulta General</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Revisión completa y diagnóstico</p>
+                <p class="text-xs text-gray-500">⏰ 30 min • 📅 L-V 10:00-14:00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$1,000</p>
+              </div>
             </div>
-          </label>
-          
-          <label class="relative cursor-pointer group">
-            <input type="radio" name="tipoCita" value="urgente" class="peer sr-only">
-            <div class="p-6 border-2 border-gray-200 rounded-2xl peer-checked:border-purple-600 peer-checked:bg-purple-50 transition-all hover:shadow-lg">
-              <div class="text-3xl mb-3">🚨</div>
-              <h4 class="font-bold text-gray-900 mb-2">Consulta Urgente</h4>
-              <p class="text-sm text-gray-600 mb-3">L-V 8-9:30 AM | 3-4 PM</p>
-              <p class="text-xs text-gray-500 mb-3">Duración: 30 minutos</p>
-              <p class="text-2xl font-bold text-purple-600">$2,000</p>
+          </div>
+
+          <div class="option-card card p-4" data-tipo="urgente">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-2xl">🚨</span>
+                  <h3 class="font-bold text-gray-900">Consulta Urgente</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Atención prioritaria inmediata</p>
+                <p class="text-xs text-gray-500">⏰ 30 min • 📅 L-V 8:00-9:30 | 15:00-16:00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$2,000</p>
+              </div>
             </div>
-          </label>
-          
-          <label class="relative cursor-pointer group">
-            <input type="radio" name="tipoCita" value="video" class="peer sr-only">
-            <div class="p-6 border-2 border-gray-200 rounded-2xl peer-checked:border-purple-600 peer-checked:bg-purple-50 transition-all hover:shadow-lg">
-              <div class="text-3xl mb-3">💻</div>
-              <h4 class="font-bold text-gray-900 mb-2">Videollamada</h4>
-              <p class="text-sm text-gray-600 mb-3">L-V 10:00 AM - 7:00 PM</p>
-              <p class="text-xs text-gray-500 mb-3">Duración: 15 minutos</p>
-              <p class="text-2xl font-bold text-purple-600">$200</p>
+          </div>
+
+          <div class="option-card card p-4" data-tipo="video">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-2xl">💻</span>
+                  <h3 class="font-bold text-gray-900">Videollamada</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Consulta virtual para seguimiento</p>
+                <p class="text-xs text-gray-500">⏰ 15 min • 📅 L-V 10:00-19:00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$200</p>
+              </div>
             </div>
-          </label>
+          </div>
         </div>
-        <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+
+        <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <p class="text-sm text-amber-800">
-            <strong>💡 Nota importante:</strong> Las videollamadas son exclusivamente para aclarar resultados y dudas rápidas. No incluyen expedición de recetas médicas.
+            <strong>💡 Nota:</strong> Las videollamadas son solo para dudas y seguimiento. No incluyen recetas.
           </p>
         </div>
       </div>
 
-      <!-- Calendario -->
-      <div class="glass rounded-3xl shadow-2xl p-6 sm:p-8">
-        <h3 class="font-bold text-gray-900 mb-6 text-lg flex items-center">
-          <span class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white mr-3">2</span>
-          Selecciona la fecha
-        </h3>
-        
-        <div class="flex justify-between items-center mb-6">
-          <button id="prevMonth" class="p-3 hover:bg-gray-100 rounded-xl transition font-bold text-purple-600">
-            ← 
-          </button>
-          <h4 class="font-bold text-gray-900 text-lg" id="mesActual">Cargando...</h4>
-          <button id="nextMonth" class="p-3 hover:bg-gray-100 rounded-xl transition font-bold text-purple-600">
-            →
-          </button>
+      <!-- Paso 2: Fecha -->
+      <div id="paso2" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <button id="btnBack2" class="btn-secondary">← Atrás</button>
+          <div class="text-center">
+            <h2 class="text-xl font-bold text-gray-900">Selecciona la fecha</h2>
+            <p class="text-sm text-gray-500" id="mesNombre">Enero 2025</p>
+          </div>
+          <div class="w-24"></div>
         </div>
-        
-        <div class="grid grid-cols-7 gap-2 mb-3 text-center text-xs font-bold text-gray-600">
-          <div>Dom</div>
-          <div>Lun</div>
-          <div>Mar</div>
-          <div>Mié</div>
-          <div>Jue</div>
-          <div>Vie</div>
-          <div>Sáb</div>
-        </div>
-        
-        <div id="calendarioDias" class="grid grid-cols-7 gap-2">
-          <div class="text-center text-gray-400 py-8 col-span-7">Cargando calendario...</div>
+
+        <div class="card p-4">
+          <div class="flex justify-between items-center mb-4">
+            <button id="prevMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
+              ←
+            </button>
+            <span class="font-semibold text-gray-900" id="mesActual2">Enero 2025</span>
+            <button id="nextMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
+              →
+            </button>
+          </div>
+
+          <div class="calendar-mini mb-2">
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">D</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">L</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">J</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">V</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">S</div>
+          </div>
+
+          <div class="calendar-mini" id="calendarioDias">
+            <!-- Generado dinámicamente -->
+          </div>
         </div>
       </div>
 
-      <!-- Horarios -->
-      <div id="seccionHorarios" class="glass rounded-3xl shadow-2xl p-6 sm:p-8 hidden">
-        <h3 class="font-bold text-gray-900 mb-6 text-lg flex items-center">
-          <span class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white mr-3">3</span>
-          Horarios disponibles
-        </h3>
-        <div id="horariosDisponibles" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-          <!-- Horarios generados dinámicamente -->
+      <!-- Paso 3: Hora -->
+      <div id="paso3" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <button id="btnBack3" class="btn-secondary">← Atrás</button>
+          <div class="text-center">
+            <h2 class="text-xl font-bold text-gray-900">Elige tu horario</h2>
+            <p class="text-sm text-gray-500" id="fechaSeleccionada">-</p>
+          </div>
+          <div class="w-24"></div>
+        </div>
+
+        <div class="card p-4">
+          <div id="horariosContainer" class="time-grid">
+            <!-- Generado dinámicamente -->
+          </div>
         </div>
       </div>
 
-      <!-- Formulario -->
-      <div id="formularioDatos" class="glass rounded-3xl shadow-2xl p-6 sm:p-8 hidden">
-        <h3 class="font-bold text-gray-900 mb-6 text-lg flex items-center">
-          <span class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white mr-3">4</span>
-          Completa tus datos
-        </h3>
-        <form id="formPaciente" class="space-y-4">
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre completo *</label>
-              <input type="text" id="inputNombre" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono *</label>
-              <input type="tel" id="inputTelefono" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-            </div>
+      <!-- Paso 4: Datos -->
+      <div id="paso4" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <button id="btnBack4" class="btn-secondary">← Atrás</button>
+          <h2 class="text-xl font-bold text-gray-900">Tus datos</h2>
+          <div class="w-24"></div>
+        </div>
+
+        <form id="formDatos" class="space-y-4">
+          <div class="card p-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre completo *</label>
+            <input type="text" id="inputNombre" required 
+                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+                   placeholder="Tu nombre">
           </div>
-          
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
-            <input type="email" id="inputEmail" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+
+          <div class="card p-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono *</label>
+            <input type="tel" id="inputTelefono" required 
+                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+                   placeholder="10 dígitos">
           </div>
-          
-          <div>
+
+          <div class="card p-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Email (opcional)</label>
+            <input type="email" id="inputEmail" 
+                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+                   placeholder="tu@email.com">
+          </div>
+
+          <div class="card p-4">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de consulta *</label>
-            <textarea id="inputMotivo" required rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"></textarea>
+            <textarea id="inputMotivo" required rows="4"
+                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+                      placeholder="Describe tu situación..."></textarea>
           </div>
 
-          <button type="submit" class="w-full btn-primary text-white py-4 rounded-xl font-bold text-lg shadow-xl">
+          <button type="submit" class="btn-primary w-full">
             Confirmar reserva →
           </button>
         </form>
       </div>
 
-      <!-- Confirmación -->
+      <!-- Paso 5: Confirmación -->
       <div id="confirmacion" class="hidden">
-        <div class="glass rounded-3xl shadow-2xl p-8 text-center">
-          <div class="w-20 h-20 gradient-bg rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
-            ✓
+        <div class="text-center mb-6">
+          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-4xl">✓</span>
           </div>
-          <h3 class="text-3xl font-bold text-gray-900 mb-3">¡Reserva confirmada!</h3>
-          <p class="text-gray-600 mb-8">Tu cita ha sido reservada exitosamente</p>
-          
-          <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-6 mb-8 text-left">
-            <div class="grid md:grid-cols-3 gap-4">
-              <div>
-                <p class="text-xs text-gray-600 mb-1 font-semibold">FECHA Y HORA</p>
-                <p class="font-bold text-lg" id="resumenFecha">-</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-600 mb-1 font-semibold">TIPO DE CONSULTA</p>
-                <p class="font-bold" id="resumenTipo">-</p>
-              </div>
-              <div>
-                <p class="text-xs text-gray-600 mb-1 font-semibold">TOTAL A PAGAR</p>
-                <p class="font-bold text-3xl text-purple-600" id="resumenPrecio">-</p>
-              </div>
-            </div>
-          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Cita confirmada!</h2>
+          <p class="text-gray-600">Tu reserva ha sido guardada</p>
+        </div>
 
-          <a href="#" id="linkPago" target="_blank"
-             class="block w-full btn-primary text-white py-4 rounded-xl font-bold text-lg mb-4">
-            Proceder al pago 💳
-          </a>
-          
-          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p class="text-sm text-amber-800 font-semibold">
-              ⏱ Tienes 3 horas para completar tu pago y asegurar tu lugar
-            </p>
+        <div class="card p-6 mb-4">
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs text-gray-500 mb-1">FECHA Y HORA</p>
+              <p class="font-bold text-lg" id="resumenFecha">-</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">TIPO</p>
+              <p class="font-semibold" id="resumenTipo">-</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
+              <p class="text-3xl font-bold text-blue-600" id="resumenPrecio">-</p>
+            </div>
           </div>
         </div>
+
+        <a href="#" id="linkPago" target="_blank" class="btn-primary w-full block text-center mb-4">
+          Pagar ahora 💳
+        </a>
+
+        <div class="card p-4 bg-amber-50 border border-amber-200">
+          <p class="text-sm text-amber-800 text-center">
+            <strong>⏱ Tienes 3 horas</strong> para completar tu pago
+          </p>
+        </div>
       </div>
+
     </div>
 
-    <!-- Vista Admin -->
-    <div id="vistaAdmin" class="hidden space-y-6 fade-in">
-      
-      <!-- Login -->
-      <div id="adminLogin" class="max-w-md mx-auto">
-        <div class="glass rounded-3xl shadow-2xl p-8">
-          <div class="w-16 h-16 gradient-bg rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
-            🔐
-          </div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Panel de Administración</h2>
+    <!-- VISTA: Admin (simplificada) -->
+    <div id="vistaAdmin" class="hidden">
+      <div id="adminLogin">
+        <div class="card p-6 max-w-sm mx-auto mt-12">
+          <h2 class="text-2xl font-bold text-center mb-6">Admin</h2>
           <form id="formLogin" class="space-y-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Usuario</label>
-              <input type="text" id="loginUser" value="admin" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
-              <input type="password" id="loginPass" value="1234" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
-            </div>
-            <button type="submit" class="w-full btn-primary text-white py-3 rounded-xl font-bold">
-              Iniciar sesión
-            </button>
-            <button type="button" id="btnVolverLogin" class="w-full text-gray-600 py-2 text-sm hover:text-gray-900 font-medium">
-              ← Volver
-            </button>
+            <input type="text" id="loginUser" value="admin" 
+                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+                   placeholder="Usuario">
+            <input type="password" id="loginPass" value="1234"
+                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+                   placeholder="Contraseña">
+            <button type="submit" class="btn-primary w-full">Entrar</button>
+            <button type="button" id="btnVolverLogin" class="btn-secondary w-full">Cancelar</button>
           </form>
         </div>
       </div>
 
-      <!-- Panel Admin -->
       <div id="adminPanel" class="hidden">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <h2 class="text-3xl font-bold text-white drop-shadow-lg">Panel de Control</h2>
-            <p class="text-white/80">Gestión de citas y disponibilidad</p>
-          </div>
-          <button id="btnCerrarSesion" class="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition shadow-lg">
-            Cerrar sesión
-          </button>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Panel Admin</h2>
+          <button id="btnCerrarSesion" class="text-sm text-red-600 font-semibold">Salir</button>
         </div>
 
-        <!-- Estadísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div class="glass rounded-2xl p-6 stat-card">
-            <p class="text-sm text-gray-600 font-semibold mb-2">CITAS HOY</p>
-            <p class="text-3xl font-bold text-gray-900" id="statHoy">0</p>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">HOY</p>
+            <p class="text-3xl font-bold" id="statHoy">0</p>
           </div>
-          <div class="glass rounded-2xl p-6 stat-card">
-            <p class="text-sm text-gray-600 font-semibold mb-2">ESTA SEMANA</p>
-            <p class="text-3xl font-bold text-gray-900" id="statSemana">0</p>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">SEMANA</p>
+            <p class="text-3xl font-bold" id="statSemana">0</p>
           </div>
-          <div class="glass rounded-2xl p-6 stat-card">
-            <p class="text-sm text-gray-600 font-semibold mb-2">PENDIENTES PAGO</p>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">PENDIENTES</p>
             <p class="text-3xl font-bold text-orange-600" id="statPendientes">0</p>
           </div>
-          <div class="glass rounded-2xl p-6 stat-card">
-            <p class="text-sm text-gray-600 font-semibold mb-2">TOTAL CITAS</p>
-            <p class="text-3xl font-bold text-gray-900" id="statTotal">0</p>
+          <div class="card p-4">
+            <p class="text-xs text-gray-500 mb-1">TOTAL</p>
+            <p class="text-3xl font-bold" id="statTotal">0</p>
           </div>
         </div>
 
-        <!-- Próxima Cita -->
-        <div class="glass rounded-2xl p-6 sm:p-8 mb-6 gradient-bg">
-          <h3 class="font-bold text-white mb-6 text-xl flex items-center">
-            <span class="text-2xl mr-3">👤</span> Próxima consulta
-          </h3>
-          <div id="proximaCitaContent" class="bg-white rounded-xl p-6">
-            <p class="text-gray-500 text-center py-4">Cargando...</p>
+        <div class="card p-4 mb-6">
+          <h3 class="font-bold mb-4">Próxima cita</h3>
+          <div id="proximaCitaContent">
+            <p class="text-gray-500 text-sm">No hay citas</p>
           </div>
         </div>
 
-        <!-- Filtros y Lista de Citas -->
-        <div class="glass rounded-2xl p-6 sm:p-8 mb-6">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h3 class="font-bold text-gray-900 text-xl">Gestión de citas</h3>
-            <div class="flex gap-2 w-full sm:w-auto">
-              <input type="date" id="filtroFecha" class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm">
-              <button id="btnLimpiarFiltro" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition text-sm">
-                Todas
-              </button>
-            </div>
+        <div class="card p-4 mb-6">
+          <div class="flex gap-2 mb-4">
+            <input type="date" id="filtroFecha" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-sm">
+            <button id="btnLimpiarFiltro" class="btn-secondary text-sm">Todas</button>
           </div>
-          <div id="listaCitas" class="space-y-3">
-            <p class="text-gray-500 text-center py-8">Cargando citas...</p>
-          </div>
+          <div id="listaCitas"></div>
         </div>
 
-        <!-- Bloquear Días Completos -->
-        <div class="glass rounded-2xl p-6 sm:p-8 mb-6">
-          <h3 class="font-bold text-gray-900 mb-6 text-xl flex items-center">
-            <span class="text-2xl mr-3">🚫</span> Bloquear días completos
-          </h3>
-          <form id="formBloquearDia" class="space-y-4">
-            <div class="grid md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha a bloquear</label>
-                <input type="date" id="fechaBloquearDia" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo (opcional)</label>
-                <input type="text" id="motivoBloqueo" placeholder="Ej: Vacaciones, Congreso" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500">
-              </div>
-            </div>
-            <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition shadow-lg">
-              Bloquear día completo
-            </button>
+        <div class="card p-4 mb-6">
+          <h3 class="font-bold mb-4">Bloquear día</h3>
+          <form id="formBloquearDia" class="space-y-3">
+            <input type="date" id="fechaBloquearDia" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <input type="text" id="motivoBloqueo" placeholder="Motivo" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Bloquear</button>
           </form>
         </div>
 
-        <!-- Lista de Días Bloqueados -->
-        <div class="glass rounded-2xl p-6 sm:p-8">
-          <h3 class="font-bold text-gray-900 mb-6 text-xl">Días bloqueados</h3>
-          <div id="listaDiasBloqueados" class="space-y-3">
-            <p class="text-gray-500 text-center py-8">Cargando...</p>
-          </div>
+        <div class="card p-4">
+          <h3 class="font-bold mb-4">Días bloqueados</h3>
+          <div id="listaDiasBloqueados"></div>
         </div>
       </div>
     </div>
+
   </main>
 
   <script>
-    // ========================================
-    // CONFIGURACIÓN SUPABASE
-    // ========================================
+    // Config
     const { createClient } = supabase;
     const supabaseClient = createClient(
       'https://ecqjfftvvcyqpxtdcnbb.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjcWpmZnR2dmN5cXB4dGRjbmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDA5NjQsImV4cCI6MjA4MDI3Njk2NH0.hQ94vABAfutXKRB0boBet-HcnR-VW6Lin6IRUeKEl6o'
     );
 
-    // Links de Stripe
     const STRIPE_LINKS = {
-      urgente: 'https://buy.stripe.com/aFa3cu8uC7mofcTdkxdAk02',
       normal: 'https://buy.stripe.com/4gM3cuh18gWY7Kr80ddAk00',
+      urgente: 'https://buy.stripe.com/aFa3cu8uC7mofcTdkxdAk02',
       video: 'https://buy.stripe.com/eVqdR86mu8qsaWD4O1dAk01'
     };
 
-    // Variables globales
+    // Estado
+    let currentStep = 1;
+    let selectedType = null;
+    let selectedDate = null;
+    let selectedTime = null;
     let mesActual = new Date();
-    let diaSeleccionado = null;
-    let horarioSeleccionado = null;
-    let tipoCitaSeleccionada = 'normal';
 
-    console.log('🚀 Aplicación iniciada con Supabase');
-
-    // ========================================
-    // FUNCIONES DE BASE DE DATOS
-    // ========================================
+    // Funciones DB
     async function guardarCita(cita) {
-      try {
-        const { data, error } = await supabaseClient
-          .from('citas')
-          .insert([cita])
-          .select();
-        
-        if (error) throw error;
-        console.log('✅ Cita guardada:', data);
-        return data[0];
-      } catch (error) {
-        console.error('❌ Error al guardar cita:', error);
-        alert('Error al guardar la cita. Por favor intenta de nuevo.');
-        return null;
-      }
+      const { data, error } = await supabaseClient.from('citas').insert([cita]).select();
+      if (error) { alert('Error al guardar'); return null; }
+      return data[0];
     }
 
     async function obtenerCitas(fecha = null) {
-      try {
-        let query = supabaseClient
-          .from('citas')
-          .select('*')
-          .order('fecha', { ascending: true })
-          .order('horario', { ascending: true });
-        
-        if (fecha) {
-          query = query.eq('fecha', fecha);
-        }
-        
-        const { data, error } = await query;
-        if (error) throw error;
-        
-        console.log(`✅ Citas obtenidas: ${data.length}`);
-        return data || [];
-      } catch (error) {
-        console.error('❌ Error al obtener citas:', error);
-        return [];
-      }
+      let query = supabaseClient.from('citas').select('*').order('fecha').order('horario');
+      if (fecha) query = query.eq('fecha', fecha);
+      const { data } = await query;
+      return data || [];
     }
 
     async function cancelarCitaDB(id) {
-      try {
-        const { error } = await supabaseClient
-          .from('citas')
-          .delete()
-          .eq('id', id);
-        
-        if (error) throw error;
-        console.log('✅ Cita cancelada');
-      } catch (error) {
-        console.error('❌ Error al cancelar cita:', error);
-        alert('Error al cancelar la cita');
-      }
+      await supabaseClient.from('citas').delete().eq('id', id);
     }
 
     async function bloquearDia(bloqueo) {
-      try {
-        const { data, error } = await supabaseClient
-          .from('dias_bloqueados')
-          .insert([bloqueo])
-          .select();
-        
-        if (error) throw error;
-        console.log('✅ Día bloqueado:', data);
-        return data[0];
-      } catch (error) {
-        console.error('❌ Error al bloquear día:', error);
-        alert('Error al bloquear el día. Puede que ya esté bloqueado.');
-        return null;
-      }
+      const { data, error } = await supabaseClient.from('dias_bloqueados').insert([bloqueo]).select();
+      if (error) { alert('Error o ya bloqueado'); return null; }
+      return data[0];
     }
 
     async function obtenerDiasBloqueados() {
-      try {
-        const { data, error } = await supabaseClient
-          .from('dias_bloqueados')
-          .select('*')
-          .order('fecha', { ascending: true });
-        
-        if (error) throw error;
-        console.log(`✅ Días bloqueados: ${data.length}`);
-        return data || [];
-      } catch (error) {
-        console.error('❌ Error al obtener bloqueos:', error);
-        return [];
-      }
+      const { data } = await supabaseClient.from('dias_bloqueados').select('*').order('fecha');
+      return data || [];
     }
 
     async function desbloquearDia(id) {
-      try {
-        const { error } = await supabaseClient
-          .from('dias_bloqueados')
-          .delete()
-          .eq('id', id);
+      await supabaseClient.from('dias_bloqueados').delete().eq('id', id);
+    }
+
+    // UI Steps
+    function showStep(step) {
+      for(let i=1; i<=5; i++) {
+        document.getElementById(`paso${i}`)?.classList.add('hidden');
+        const ind = document.getElementById(`stepInd${i}`);
+        if(ind) {
+          ind.classList.remove('active','completed','inactive');
+          if(i < step) ind.classList.add('completed');
+          else if(i === step) ind.classList.add('active');
+          else ind.classList.add('inactive');
+        }
+      }
+      if(step <= 4) document.getElementById(`paso${step}`).classList.remove('hidden');
+      const progress = (step/4)*100;
+      document.getElementById('progressBar').style.width = `${progress}%`;
+      currentStep = step;
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    // Paso 1: Tipo
+    document.querySelectorAll('[data-tipo]').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('[data-tipo]').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedType = card.dataset.tipo;
+        setTimeout(() => showStep(2), 300);
+      });
+    });
+
+    // Paso 2: Calendario
+    async function renderCalendar() {
+      const year = mesActual.getFullYear();
+      const month = mesActual.getMonth();
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      
+      document.getElementById('mesActual2').textContent = `${meses[month]} ${year}`;
+      document.getElementById('mesNombre').textContent = `${meses[month]} ${year}`;
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      
+      const bloqueados = await obtenerDiasBloqueados();
+      const fechasBloqueadas = bloqueados.map(b => b.fecha);
+      
+      const container = document.getElementById('calendarioDias');
+      container.innerHTML = '';
+      
+      for(let i=0; i<firstDay; i++) container.appendChild(document.createElement('div'));
+      
+      for(let d=1; d<=lastDate; d++) {
+        const fecha = new Date(year, month, d);
+        fecha.setHours(0,0,0,0);
+        const dow = fecha.getDay();
+        const isWeekend = dow === 0 || dow === 6;
+        const isPast = fecha < today;
+        const fechaStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isBlocked = fechasBloqueadas.includes(fechaStr);
         
-        if (error) throw error;
-        console.log('✅ Día desbloqueado');
-      } catch (error) {
-        console.error('❌ Error al desbloquear:', error);
-        alert('Error al desbloquear el día');
+        const cell = document.createElement('div');
+        cell.textContent = d;
+        cell.className = 'day-cell';
+        
+        if(isPast || isWeekend) {
+          cell.classList.add('disabled');
+        } else if(isBlocked) {
+          cell.classList.add('blocked');
+        } else {
+          cell.addEventListener('click', () => {
+            selectedDate = fechaStr;
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+            cell.classList.add('selected');
+            setTimeout(() => showStep(3), 300);
+            renderHorarios();
+          });
+        }
+        
+        container.appendChild(cell);
       }
     }
 
-    // ========================================
-    // NAVEGACIÓN
-    // ========================================
+    document.getElementById('prevMes').addEventListener('click', () => {
+      mesActual.setMonth(mesActual.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.getElementById('nextMes').addEventListener('click', () => {
+      mesActual.setMonth(mesActual.getMonth() + 1);
+      renderCalendar();
+    });
+
+    // Paso 3: Horarios
+    async function renderHorarios() {
+      document.getElementById('fechaSeleccionada').textContent = selectedDate;
+      const container = document.getElementById('horariosContainer');
+      container.innerHTML = '<p class="col-span-full text-center text-gray-500">Cargando...</p>';
+      
+      const citas = await obtenerCitas(selectedDate);
+      const ocupados = citas.map(c => c.horario);
+      
+      let horarios = [];
+      if(selectedType === 'urgente') {
+        for(let h=8; h<=9.5; h+=0.5) {
+          const hora = Math.floor(h);
+          const min = (h%1)*60;
+          horarios.push(`${String(hora).padStart(2,'0')}:${String(min).padStart(2,'0')}:00`);
+        }
+        for(let h=15; h<=16; h+=0.5) {
+          const hora = Math.floor(h);
+          const min = (h%1)*60;
+          horarios.push(`${String(hora).padStart(2,'0')}:${String(min).padStart(2,'0')}:00`);
+        }
+      } else if(selectedType === 'video') {
+        for(let h=10; h<19; h+=0.25) {
+          const hora = Math.floor(h);
+          const min = (h%1)*60;
+          horarios.push(`${String(hora).padStart(2,'0')}:${String(min).padStart(2,'0')}:00`);
+        }
+      } else {
+        for(let h=10; h<14; h+=0.5) {
+          const hora = Math.floor(h);
+          const min = (h%1)*60;
+          horarios.push(`${String(hora).padStart(2,'0')}:${String(min).padStart(2,'0')}:00`);
+        }
+      }
+      
+      container.innerHTML = '';
+      horarios.forEach(h => {
+        const slot = document.createElement('div');
+        slot.textContent = h.substring(0,5);
+        slot.className = 'time-slot';
+        
+        if(ocupados.includes(h)) {
+          slot.classList.add('disabled');
+        } else {
+          slot.addEventListener('click', () => {
+            selectedTime = h;
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            slot.classList.add('selected');
+            setTimeout(() => showStep(4), 300);
+          });
+        }
+        
+        container.appendChild(slot);
+      });
+    }
+
+    // Paso 4: Form
+    document.getElementById('formDatos').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const cita = {
+        nombre: document.getElementById('inputNombre').value,
+        telefono: document.getElementById('inputTelefono').value,
+        email: document.getElementById('inputEmail').value || null,
+        motivo: document.getElementById('inputMotivo').value,
+        fecha: selectedDate,
+        horario: selectedTime,
+        tipo: selectedType,
+        pagado: false
+      };
+      
+      const saved = await guardarCita(cita);
+      if(saved) {
+        const precios = {normal:'$1,000', urgente:'$2,000', video:'$200'};
+        const tipos = {normal:'Consulta General', urgente:'Consulta Urgente', video:'Videollamada'};
+        
+        document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0,5)}`;
+        document.getElementById('resumenTipo').textContent = tipos[selectedType];
+        document.getElementById('resumenPrecio').textContent = precios[selectedType];
+        document.getElementById('linkPago').href = STRIPE_LINKS[selectedType];
+        
+        document.getElementById('paso4').classList.add('hidden');
+        document.getElementById('confirmacion').classList.remove('hidden');
+        document.getElementById('formDatos').reset();
+      }
+    });
+
+    // Navegación atrás
+    document.getElementById('btnBack2').addEventListener('click', () => showStep(1));
+    document.getElementById('btnBack3').addEventListener('click', () => showStep(2));
+    document.getElementById('btnBack4').addEventListener('click', () => showStep(3));
+
+    // Admin
     document.getElementById('btnAdmin').addEventListener('click', () => {
       document.getElementById('vistaReserva').classList.add('hidden');
       document.getElementById('vistaAdmin').classList.remove('hidden');
@@ -581,13 +803,12 @@
       e.preventDefault();
       const user = document.getElementById('loginUser').value;
       const pass = document.getElementById('loginPass').value;
-      
-      if (user === 'admin' && pass === '1234') {
+      if(user === 'admin' && pass === '1234') {
         document.getElementById('adminLogin').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
-        await cargarDatosAdmin();
+        await cargarAdmin();
       } else {
-        alert('Usuario o contraseña incorrectos');
+        alert('Credenciales incorrectas');
       }
     });
 
@@ -598,241 +819,19 @@
       document.getElementById('vistaReserva').classList.remove('hidden');
     });
 
-    // ========================================
-    // TIPO DE CITA
-    // ========================================
-    document.querySelectorAll('input[name="tipoCita"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        tipoCitaSeleccionada = e.target.value;
-        if (diaSeleccionado) {
-          generarHorarios(diaSeleccionado);
-        }
-      });
-    });
-
-    // ========================================
-    // CALENDARIO
-    // ========================================
-    async function generarCalendario() {
-      const año = mesActual.getFullYear();
-      const mes = mesActual.getMonth();
-      
-      const primerDia = new Date(año, mes, 1).getDay();
-      const ultimoDia = new Date(año, mes + 1, 0).getDate();
-      
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      
-      document.getElementById('mesActual').textContent = `${meses[mes]} ${año}`;
-      
-      const container = document.getElementById('calendarioDias');
-      container.innerHTML = '';
-      
-      // Obtener días bloqueados
-      const bloqueados = await obtenerDiasBloqueados();
-      const fechasBloqueadas = bloqueados.map(b => b.fecha);
-      
-      // Días vacíos
-      for (let i = 0; i < primerDia; i++) {
-        container.appendChild(document.createElement('div'));
-      }
-      
-      // Días del mes
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      
-      for (let dia = 1; dia <= ultimoDia; dia++) {
-        const fecha = new Date(año, mes, dia);
-        fecha.setHours(0, 0, 0, 0);
-        const diaSemana = fecha.getDay();
-        const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
-        const esPasado = fecha < hoy;
-        const fechaStr = `${año}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-        const estaBloqueado = fechasBloqueadas.includes(fechaStr);
-        
-        const div = document.createElement('div');
-        div.textContent = dia;
-        div.className = 'calendar-day flex items-center justify-center rounded-xl cursor-pointer font-medium';
-        
-        if (esPasado || esFinDeSemana) {
-          div.className += ' bg-gray-100 text-gray-400 cursor-not-allowed disabled';
-        } else if (estaBloqueado) {
-          div.className += ' blocked';
-          div.title = 'Día bloqueado';
-        } else {
-          div.className += ' bg-white border-2 border-gray-200 hover:border-purple-400 text-gray-900';
-          div.addEventListener('click', () => seleccionarDia(año, mes, dia));
-        }
-        
-        container.appendChild(div);
-      }
-      
-      console.log('📅 Calendario generado');
-    }
-
-    async function seleccionarDia(año, mes, dia) {
-      diaSeleccionado = `${año}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-      
-      document.querySelectorAll('.calendar-day').forEach(d => {
-        d.classList.remove('selected');
-      });
-      
-      event.target.classList.add('selected');
-      
-      console.log('📆 Día seleccionado:', diaSeleccionado);
-      await generarHorarios(diaSeleccionado);
-      document.getElementById('seccionHorarios').classList.remove('hidden');
-      
-      if (window.innerWidth < 768) {
-        document.getElementById('seccionHorarios').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }
-
-    async function generarHorarios(fecha) {
-      const container = document.getElementById('horariosDisponibles');
-      container.innerHTML = '<div class="col-span-full text-center text-gray-500">Cargando horarios...</div>';
-      
-      let horarios = [];
-      const citas = await obtenerCitas(fecha);
-      const ocupados = citas.map(c => c.horario);
-      
-      console.log('⏰ Horarios ocupados:', ocupados);
-      
-      if (tipoCitaSeleccionada === 'urgente') {
-        for (let h = 8; h <= 9.5; h += 0.5) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-        for (let h = 15; h <= 16; h += 0.5) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-      } else if (tipoCitaSeleccionada === 'video') {
-        for (let h = 10; h < 19; h += 0.25) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-      } else {
-        for (let h = 10; h < 14; h += 0.5) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-      }
-      
-      container.innerHTML = '';
-      
-      horarios.forEach(horario => {
-        const estaOcupado = ocupados.includes(horario);
-        const div = document.createElement('div');
-        const horarioDisplay = horario.substring(0, 5);
-        div.textContent = horarioDisplay;
-        div.className = 'time-slot px-3 py-3 border-2 border-gray-200 rounded-xl text-center cursor-pointer font-medium bg-white';
-        
-        if (estaOcupado) {
-          div.className += ' bg-gray-100 text-gray-400 cursor-not-allowed disabled';
-          div.title = 'Horario ocupado';
-        } else {
-          div.addEventListener('click', () => seleccionarHorario(horario, div));
-        }
-        
-        container.appendChild(div);
-      });
-      
-      console.log('⏰ Horarios generados:', horarios.length);
-    }
-
-    function seleccionarHorario(horario, elemento) {
-      horarioSeleccionado = horario;
-      
-      document.querySelectorAll('.time-slot').forEach(t => {
-        t.classList.remove('selected', 'border-purple-600');
-      });
-      elemento.classList.add('selected', 'border-purple-600');
-      
-      console.log('🕐 Horario seleccionado:', horario);
-      document.getElementById('formularioDatos').classList.remove('hidden');
-      
-      if (window.innerWidth < 768) {
-        setTimeout(() => {
-          document.getElementById('formularioDatos').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      }
-    }
-
-    // Navegación del calendario
-    document.getElementById('prevMonth').addEventListener('click', async () => {
-      mesActual.setMonth(mesActual.getMonth() - 1);
-      await generarCalendario();
-    });
-
-    document.getElementById('nextMonth').addEventListener('click', async () => {
-      mesActual.setMonth(mesActual.getMonth() + 1);
-      await generarCalendario();
-    });
-
-    // ========================================
-    // FORMULARIO
-    // ========================================
-    document.getElementById('formPaciente').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const precios = { normal: '$1,000', urgente: '$2,000', video: '$200' };
-      const tipos = { normal: 'Consulta Normal', urgente: 'Consulta Urgente', video: 'Videollamada' };
-      
-      const cita = {
-        nombre: document.getElementById('inputNombre').value,
-        telefono: document.getElementById('inputTelefono').value,
-        email: document.getElementById('inputEmail').value || null,
-        motivo: document.getElementById('inputMotivo').value,
-        fecha: diaSeleccionado,
-        horario: horarioSeleccionado,
-        tipo: tipoCitaSeleccionada,
-        pagado: false
-      };
-      
-      const citaGuardada = await guardarCita(cita);
-      
-      if (citaGuardada) {
-        document.getElementById('resumenFecha').textContent = `${diaSeleccionado} • ${horarioSeleccionado.substring(0, 5)}`;
-        document.getElementById('resumenTipo').textContent = tipos[tipoCitaSeleccionada];
-        document.getElementById('resumenPrecio').textContent = precios[tipoCitaSeleccionada];
-        document.getElementById('linkPago').href = STRIPE_LINKS[tipoCitaSeleccionada];
-        
-        document.getElementById('formularioDatos').classList.add('hidden');
-        document.getElementById('confirmacion').classList.remove('hidden');
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        // Limpiar formulario
-        e.target.reset();
-      }
-    });
-
-    // ========================================
-    // ADMIN: CARGAR DATOS
-    // ========================================
-    async function cargarDatosAdmin() {
-      console.log('📊 Cargando datos del admin...');
-      
+    async function cargarAdmin() {
       const citas = await obtenerCitas();
-      
-      // Estadísticas
       const hoy = new Date().toISOString().split('T')[0];
-      const citasHoy = citas.filter(c => c.fecha === hoy).length;
       
+      const citasHoy = citas.filter(c => c.fecha === hoy).length;
       const inicioSemana = new Date();
       inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
       const finSemana = new Date(inicioSemana);
       finSemana.setDate(finSemana.getDate() + 6);
       const citasSemana = citas.filter(c => {
-        const fecha = new Date(c.fecha + 'T00:00:00');
-        return fecha >= inicioSemana && fecha <= finSemana;
+        const f = new Date(c.fecha + 'T00:00:00');
+        return f >= inicioSemana && f <= finSemana;
       }).length;
-      
       const pendientes = citas.filter(c => !c.pagado).length;
       
       document.getElementById('statHoy').textContent = citasHoy;
@@ -841,151 +840,117 @@
       document.getElementById('statTotal').textContent = citas.length;
       
       await actualizarListaCitas();
-      await actualizarProximaCita();
-      await actualizarDiasBloqueados();
-      
-      console.log('✅ Datos del admin cargados');
+      await actualizarProxima();
+      await actualizarBloqueados();
     }
 
-    async function actualizarListaCitas(fechaFiltro = null) {
+    async function actualizarListaCitas(filtro = null) {
       const container = document.getElementById('listaCitas');
-      const citas = await obtenerCitas(fechaFiltro);
+      const citas = await obtenerCitas(filtro);
       
-      if (citas.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay citas para mostrar</p>';
+      if(citas.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin citas</p>';
         return;
       }
       
-      const tipos = { normal: 'Normal', urgente: 'Urgente', video: 'Video' };
-      const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
+      const tipos = {normal:'General', urgente:'Urgente', video:'Video'};
+      const iconos = {normal:'🏥', urgente:'🚨', video:'💻'};
       
-      container.innerHTML = citas.map(cita => `
-        <div class="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200 hover:shadow-lg transition">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xl">${iconos[cita.tipo]}</span>
-              <p class="font-bold text-gray-900">${cita.nombre}</p>
-              ${!cita.pagado ? '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente pago</span>' : '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>'}
+      container.innerHTML = citas.map(c => `
+        <div class="border-b last:border-0 py-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-semibold text-sm">${iconos[c.tipo]} ${c.nombre}</p>
+              <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0,5)}</p>
+              <p class="text-xs text-gray-400 mt-1">${c.motivo}</p>
             </div>
-            <p class="text-sm text-gray-600 font-medium">${cita.fecha} • ${cita.horario.substring(0, 5)} • ${tipos[cita.tipo]}</p>
-            <p class="text-xs text-gray-500 mt-1">${cita.motivo}</p>
-            <p class="text-xs text-gray-400 mt-1">📞 ${cita.telefono}${cita.email ? ' • 📧 ' + cita.email : ''}</p>
+            <button onclick="cancelarCita(${c.id})" class="text-xs text-red-600 font-semibold">Cancelar</button>
           </div>
-          <button onclick="cancelarCita(${cita.id})" class="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition text-sm">
-            Cancelar
-          </button>
         </div>
       `).join('');
     }
 
-    async function actualizarProximaCita() {
+    async function actualizarProxima() {
       const citas = await obtenerCitas();
       const ahora = new Date();
-      
-      const proximaCita = citas.find(cita => {
-        const fechaCita = new Date(`${cita.fecha}T${cita.horario}`);
-        return fechaCita >= ahora;
-      });
+      const proxima = citas.find(c => new Date(`${c.fecha}T${c.horario}`) >= ahora);
       
       const container = document.getElementById('proximaCitaContent');
-      if (proximaCita) {
-        const tipos = { normal: 'Consulta Normal', urgente: 'Consulta Urgente', video: 'Videollamada' };
-        const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
+      if(proxima) {
+        const tipos = {normal:'General', urgente:'Urgente', video:'Video'};
+        const iconos = {normal:'🏥', urgente:'🚨', video:'💻'};
         container.innerHTML = `
-          <div class="flex items-center gap-3 mb-3">
-            <span class="text-4xl">${iconos[proximaCita.tipo]}</span>
-            <div>
-              <p class="text-2xl font-bold text-gray-900">${proximaCita.nombre}</p>
-              <p class="text-purple-600 font-bold text-lg">${proximaCita.fecha} • ${proximaCita.horario.substring(0, 5)}</p>
-            </div>
-          </div>
-          <p class="text-gray-700 font-semibold">${tipos[proximaCita.tipo]}</p>
-          <p class="text-gray-600 mt-2">${proximaCita.motivo}</p>
-          <p class="text-gray-500 mt-2">📞 ${proximaCita.telefono}</p>
-          ${!proximaCita.pagado ? '<p class="text-orange-600 font-semibold mt-2">⚠️ Pendiente de pago</p>' : ''}
+          <p class="font-bold">${iconos[proxima.tipo]} ${proxima.nombre}</p>
+          <p class="text-sm text-gray-600">${proxima.fecha} • ${proxima.horario.substring(0,5)}</p>
+          <p class="text-xs text-gray-500 mt-1">${proxima.motivo}</p>
         `;
       } else {
-        container.innerHTML = '<p class="text-gray-500 text-center py-4">No hay citas próximas</p>';
+        container.innerHTML = '<p class="text-gray-500 text-sm">No hay próximas</p>';
       }
     }
 
     window.cancelarCita = async function(id) {
-      if (confirm('¿Seguro que deseas cancelar esta cita?')) {
+      if(confirm('¿Cancelar esta cita?')) {
         await cancelarCitaDB(id);
-        await cargarDatosAdmin();
+        await cargarAdmin();
       }
     };
 
-    // ========================================
-    // FILTROS
-    // ========================================
-    document.getElementById('filtroFecha').addEventListener('change', async (e) => {
-      await actualizarListaCitas(e.target.value || null);
+    document.getElementById('filtroFecha').addEventListener('change', (e) => {
+      actualizarListaCitas(e.target.value || null);
     });
 
-    document.getElementById('btnLimpiarFiltro').addEventListener('click', async () => {
+    document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
       document.getElementById('filtroFecha').value = '';
-      await actualizarListaCitas();
+      actualizarListaCitas();
     });
 
-    // ========================================
-    // BLOQUEAR DÍAS
-    // ========================================
     document.getElementById('formBloquearDia').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const bloqueo = {
         fecha: document.getElementById('fechaBloquearDia').value,
-        motivo: document.getElementById('motivoBloqueo').value || 'No especificado'
+        motivo: document.getElementById('motivoBloqueo').value || 'Sin motivo'
       };
-      
-      const resultado = await bloquearDia(bloqueo);
-      
-      if (resultado) {
-        await actualizarDiasBloqueados();
-        await generarCalendario();
+      const result = await bloquearDia(bloqueo);
+      if(result) {
+        await actualizarBloqueados();
+        await renderCalendar();
         e.target.reset();
-        alert('Día bloqueado correctamente');
+        alert('Día bloqueado');
       }
     });
 
-    async function actualizarDiasBloqueados() {
+    async function actualizarBloqueados() {
       const container = document.getElementById('listaDiasBloqueados');
       const bloqueados = await obtenerDiasBloqueados();
       
-      if (bloqueados.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay días bloqueados</p>';
+      if(bloqueados.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin bloqueos</p>';
         return;
       }
       
-      container.innerHTML = bloqueados.map(bloqueo => `
-        <div class="flex justify-between items-center p-4 bg-red-50 rounded-xl border-2 border-red-200">
+      container.innerHTML = bloqueados.map(b => `
+        <div class="border-b last:border-0 py-3 flex justify-between items-center">
           <div>
-            <p class="font-bold text-gray-900">📅 ${bloqueo.fecha}</p>
-            <p class="text-sm text-gray-600">${bloqueo.motivo}</p>
+            <p class="font-semibold text-sm">📅 ${b.fecha}</p>
+            <p class="text-xs text-gray-500">${b.motivo}</p>
           </div>
-          <button onclick="eliminarBloqueo(${bloqueo.id})" class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition text-sm">
-            Desbloquear
-          </button>
+          <button onclick="eliminarBloqueo(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button>
         </div>
       `).join('');
     }
 
     window.eliminarBloqueo = async function(id) {
-      if (confirm('¿Deseas desbloquear este día?')) {
+      if(confirm('¿Desbloquear?')) {
         await desbloquearDia(id);
-        await actualizarDiasBloqueados();
-        await generarCalendario();
-        alert('Día desbloqueado correctamente');
+        await actualizarBloqueados();
+        await renderCalendar();
       }
     };
 
-    // ========================================
-    // INICIALIZAR
-    // ========================================
-    window.addEventListener('load', async () => {
-      console.log('🎉 Aplicación cargada completamente');
-      await generarCalendario();
+    // Init
+    window.addEventListener('load', () => {
+      renderCalendar();
     });
   </script>
 
