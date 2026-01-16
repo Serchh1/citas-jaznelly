@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendar Cita - Dra. Jaznelly Lesso Zamora</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+    * {
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #f8fafc;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transition: width 0.3s ease;
+    }
+
+    .step-indicator {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .step-indicator.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .step-indicator.inactive {
+      background: #e2e8f0;
+      color: #64748b;
+    }
+
+    .step-indicator.completed {
+      background: #10b981;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .option-card {
+      border: 2px solid #e2e8f0;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .option-card:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    .option-card.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .calendar-mini {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .day-cell:hover:not(.disabled):not(.blocked) {
+      background: #f1f5f9;
+    }
+
+    .day-cell.selected {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-weight: 600;
+    }
+
+    .day-cell.disabled {
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    .day-cell.blocked {
+      background: #fee2e2;
+      color: #dc2626;
+      cursor: not-allowed;
+      position: relative;
+    }
+
+    .day-cell.blocked::after {
+      content: '×';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+    }
+
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+    }
+
+    .time-slot {
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .time-slot:hover:not(.disabled) {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .time-slot.selected {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-color: transparent;
+      color: white;
+    }
+
+    .time-slot.disabled {
+      background: #f8fafc;
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #475569;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    nav {
+      backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    @media (max-width: 640px) {
+      .day-cell {
+        font-size: 12px;
+      }
+
+      .time-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .folio-display {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 2px solid #3b82f6;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .folio-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1e40af;
+      font-family: 'DM Sans', monospace;
+      letter-spacing: 2px;
+    }
+
+    .tab-btn {
+      background: #f1f5f9;
+      color: #64748b;
+      transition: all 0.2s;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .tab-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold text-gray-900">Dra. Jaznelly Lesso Zamora</h1>
+        <p class="text-xs text-gray-500">Oftalmología</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="index.html" class="text-sm text-gray-600 font-semibold hover:text-gray-900">Inicio</a>
+        <a href="consultar.html" class="text-sm text-blue-600 font-semibold hover:text-blue-700">Consultar</a>
+        <button id="btnAdmin" class="text-sm text-gray-400 font-semibold hover:text-gray-600">Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
+
+    <!-- VISTA: Reservar Cita -->
+    <div id="vistaReserva">
+
+      <!-- Progreso -->
+      <div class="mb-8">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center gap-2">
+            <div class="step-indicator active" id="stepInd1">1</div>
+            <span class="text-sm font-medium text-gray-700">Tipo</span>
+          </div>
+          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+          <div class="flex items-center gap-2">
+            <div class="step-indicator inactive" id="stepInd2">2</div>
+            <span class="text-sm font-medium text-gray-400">Fecha</span>
+          </div>
+          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+          <div class="flex items-center gap-2">
+            <div class="step-indicator inactive" id="stepInd3">3</div>
+            <span class="text-sm font-medium text-gray-400">Hora</span>
+          </div>
+          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+          <div class="flex items-center gap-2">
+            <div class="step-indicator inactive" id="stepInd4">4</div>
+            <span class="text-sm font-medium text-gray-400">Datos</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar" style="width: 25%"></div>
+        </div>
+      </div>
+
+      <!-- Paso 1: Tipo de Consulta -->
+      <div id="paso1" class="fade-in">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Selecciona tu consulta</h2>
+        <p class="text-gray-600 mb-6">Elige el tipo de atención que necesitas</p>
+
+        <div class="space-y-3">
+          <div class="option-card card p-4" data-tipo="normal">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-2xl">🏥</span>
+                  <h3 class="font-bold text-gray-900">Consulta General</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Revisión completa y diagnóstico</p>
+                <p class="text-xs text-gray-500">⏰ 30 min • 📅 L-V 10:00-14:00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$1,000</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="option-card card p-4" data-tipo="urgente">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-2xl">🚨</span>
+                  <h3 class="font-bold text-gray-900">Consulta Urgente</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Atención prioritaria inmediata</p>
+                <p class="text-xs text-gray-500">⏰ 30 min • 📅 L-V 8:00-9:30 | 15:00-16:00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$2,000</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="option-card card p-4" data-tipo="video">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-2xl">💻</span>
+                  <h3 class="font-bold text-gray-900">Videollamada</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">Consulta virtual para seguimiento</p>
+                <p class="text-xs text-gray-500">⏰ 15 min • 📅 L-V 10:00-19:00</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$200</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <p class="text-sm text-amber-800">
+            <strong>💡 Nota:</strong> Las videollamadas son solo para dudas y seguimiento. No incluyen recetas.
+          </p>
+        </div>
+      </div>
+
+      <!-- Paso 2: Fecha -->
+      <div id="paso2" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <button id="btnBack2" class="btn-secondary">← Atrás</button>
+          <div class="text-center">
+            <h2 class="text-xl font-bold text-gray-900">Selecciona la fecha</h2>
+            <p class="text-sm text-gray-500" id="mesNombre">Enero 2025</p>
+          </div>
+          <div class="w-24"></div>
+        </div>
+
+        <div class="card p-4">
+          <div class="flex justify-between items-center mb-4">
+            <button id="prevMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
+              ←
+            </button>
+            <span class="font-semibold text-gray-900" id="mesActual2">Enero 2025</span>
+            <button id="nextMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
+              →
+            </button>
+          </div>
+
+          <div class="calendar-mini mb-2">
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">D</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">L</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">J</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">V</div>
+            <div class="text-center text-xs font-semibold text-gray-500 py-2">S</div>
+          </div>
+
+          <div class="calendar-mini" id="calendarioDias">
+            <!-- Generado dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 3: Hora -->
+      <div id="paso3" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <button id="btnBack3" class="btn-secondary">← Atrás</button>
+          <div class="text-center">
+            <h2 class="text-xl font-bold text-gray-900">Elige tu horario</h2>
+            <p class="text-sm text-gray-500" id="fechaSeleccionada">-</p>
+          </div>
+          <div class="w-24"></div>
+        </div>
+
+        <div class="card p-4">
+          <div id="horariosContainer" class="time-grid">
+            <!-- Generado dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Paso 4: Datos -->
+      <div id="paso4" class="hidden">
+        <div class="flex items-center justify-between mb-6">
+          <button id="btnBack4" class="btn-secondary">← Atrás</button>
+          <h2 class="text-xl font-bold text-gray-900">Tus datos</h2>
+          <div class="w-24"></div>
+        </div>
+
+        <form id="formDatos" class="space-y-4">
+          <div class="card p-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono * <span
+                class="text-xs text-gray-500">(10 dígitos)</span></label>
+            <input type="tel" id="inputTelefono" required maxlength="10" pattern="[0-9]{10}"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="4491234567">
+            <p class="text-xs text-gray-500 mt-1">Ingresa tu teléfono para buscar tus datos</p>
+          </div>
+
+          <div id="indicadorBusqueda" class="hidden card p-3 bg-blue-50 border border-blue-200">
+            <p class="text-sm text-blue-700 flex items-center gap-2">
+              <span class="animate-pulse">🔍</span> Buscando tus datos...
+            </p>
+          </div>
+
+          <div id="mensajePacienteEncontrado" class="hidden card p-3 bg-green-50 border border-green-200">
+            <p class="text-sm text-green-700 flex items-center gap-2">
+              <span>✅</span> ¡Te encontramos! Solo confirma tu motivo de consulta
+            </p>
+          </div>
+
+          <div class="card p-4" id="campoNombre">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label>
+            <input type="text" id="inputNombre" required
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="JUAN"
+              style="text-transform: uppercase;">
+          </div>
+
+          <div class="card p-4" id="campoApellidoPaterno">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Paterno *</label>
+            <input type="text" id="inputApellidoPaterno" required
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="PÉREZ"
+              style="text-transform: uppercase;">
+          </div>
+
+          <div class="card p-4" id="campoApellidoMaterno">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Materno *</label>
+            <input type="text" id="inputApellidoMaterno" required
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="GARCÍA"
+              style="text-transform: uppercase;">
+          </div>
+
+          <div class="card p-4" id="campoEmail">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Email <span
+                class="text-xs text-gray-500">(opcional)</span></label>
+            <input type="email" id="inputEmail" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+              placeholder="tu@email.com">
+          </div>
+
+          <div class="card p-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de consulta *</label>
+            <textarea id="inputMotivo" required rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+              placeholder="Describe tu situación..."></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary w-full">
+            Confirmar reserva →
+          </button>
+        </form>
+      </div>
+
+      <!-- Paso 5: Confirmación -->
+      <div id="confirmacion" class="hidden">
+        <div class="text-center mb-6">
+          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-4xl">✓</span>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Cita confirmada!</h2>
+          <p class="text-gray-600">Tu reserva ha sido guardada</p>
+        </div>
+
+        <!-- FOLIO -->
+        <div class="folio-display">
+          <p class="text-sm font-semibold text-blue-900 mb-2">TU FOLIO DE CITA</p>
+          <div class="folio-number" id="folioDisplay">-</div>
+          <p class="text-xs text-blue-700 mt-2">Guarda este folio para consultar tu cita</p>
+        </div>
+
+        <div class="card p-6 mb-4">
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs text-gray-500 mb-1">FECHA Y HORA</p>
+              <p class="font-bold text-lg" id="resumenFecha">-</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">TIPO</p>
+              <p class="font-semibold" id="resumenTipo">-</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
+              <p class="text-3xl font-bold text-blue-600" id="resumenPrecio">-</p>
+            </div>
+          </div>
+        </div>
+
+        <a href="#" id="linkPago" target="_blank" class="btn-primary w-full block text-center mb-4">
+          Pagar ahora 💳
+        </a>
+
+        <div class="card p-4 bg-amber-50 border border-amber-200 mb-4">
+          <p class="text-sm text-amber-800 text-center">
+            <strong>⏱ Tienes 3 horas</strong> para completar tu pago
+          </p>
+        </div>
+
+        <a href="consultar.html" class="btn-secondary w-full block text-center">
+          Consultar mi cita
+        </a>
+      </div>
+
+    </div>
+
+    <!-- VISTA: Admin (Login simplificado) -->
+    <div id="vistaAdmin" class="hidden">
+      <div id="adminLogin">
+        <div class="card p-6 max-w-sm mx-auto mt-12">
+          <h2 class="text-2xl font-bold text-center mb-6">Admin</h2>
+          <form id="formLogin" class="space-y-4">
+            <input type="text" id="loginUser" value="admin" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+              placeholder="Usuario">
+            <input type="password" id="loginPass" value="1234"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="Contraseña">
+            <button type="submit" class="btn-primary w-full">Entrar</button>
+            <button type="button" id="btnVolverLogin" class="btn-secondary w-full">Cancelar</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="adminPanel" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Panel Admin</h2>
+          <button id="btnCerrarSesion" class="text-sm text-red-600 font-semibold">Salir</button>
+        </div>
+
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <button class="tab-btn active" data-tab="resumen">📊 Resumen</button>
+          <button class="tab-btn" data-tab="pacientes">👥 Pacientes</button>
+          <button class="tab-btn" data-tab="configuracion">⚙️ Configuración</button>
+        </div>
+
+        <div id="tabResumen" class="tab-content">
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="card p-4">
+              <p class="text-xs text-gray-500 mb-1">HOY</p>
+              <p class="text-3xl font-bold" id="statHoy">0</p>
+            </div>
+            <div class="card p-4">
+              <p class="text-xs text-gray-500 mb-1">SEMANA</p>
+              <p class="text-3xl font-bold" id="statSemana">0</p>
+            </div>
+            <div class="card p-4">
+              <p class="text-xs text-gray-500 mb-1">PENDIENTES</p>
+              <p class="text-3xl font-bold text-orange-600" id="statPendientes">0</p>
+            </div>
+            <div class="card p-4">
+              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
+              <p class="text-3xl font-bold" id="statTotal">0</p>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-6">
+            <h3 class="font-bold mb-4">Próxima cita</h3>
+            <div id="proximaCitaContent">
+              <p class="text-gray-500 text-sm">No hay citas</p>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <div class="flex gap-2 mb-4">
+              <input type="date" id="filtroFecha" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-sm">
+              <button id="btnLimpiarFiltro" class="btn-secondary text-sm">Todas</button>
+            </div>
+            <div id="listaCitas"></div>
+          </div>
+        </div>
+
+        <div id="tabPacientes" class="tab-content hidden">
+          <div class="card p-4 mb-6">
+            <h3 class="font-bold mb-4">Buscar paciente</h3>
+            <div class="flex gap-2">
+              <input type="text" id="inputBuscarPaciente" placeholder="Buscar por nombre, teléfono o folio..."
+                class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg">
+              <button id="btnBuscarPaciente" class="btn-primary px-6">Buscar</button>
+            </div>
+          </div>
+
+          <div id="resultadosBusqueda" class="hidden">
+            <div class="card p-4 mb-6">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="text-xl font-bold" id="nombrePaciente">-</h3>
+                  <p class="text-sm text-gray-600" id="contactoPaciente">-</p>
+                </div>
+                <button id="btnCerrarPaciente" class="text-gray-400 hover:text-gray-600">✕</button>
+              </div>
+
+              <div class="mb-4">
+                <div class="flex justify-between items-center mb-2">
+                  <p class="text-sm font-semibold text-gray-700">Historial de citas</p>
+                  <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-semibold"
+                    id="totalCitasPaciente">0 citas</span>
+                </div>
+                <div id="historialCitas" class="space-y-2 max-h-64 overflow-y-auto">
+                  <!-- Generado dinámicamente -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="sinResultados" class="hidden">
+            <div class="card p-8 text-center">
+              <p class="text-gray-500">No se encontraron pacientes</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="tabConfiguracion" class="tab-content hidden">
+          <div class="card p-4 mb-6">
+            <h3 class="font-bold mb-4">Desbloquear jueves</h3>
+            <p class="text-sm text-gray-600 mb-4">Los jueves están bloqueados por defecto. Puedes habilitarlos aquí:</p>
+            <form id="formDesbloquearJueves" class="space-y-3">
+              <input type="date" id="fechaDesbloquearJueves" required
+                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+              <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Habilitar
+                jueves</button>
+            </form>
+          </div>
+
+          <div class="card p-4 mb-6">
+            <h3 class="font-bold mb-4">Bloquear día específico</h3>
+            <form id="formBloquearDia" class="space-y-3">
+              <input type="date" id="fechaBloquearDia" required
+                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+              <input type="text" id="motivoBloqueo" placeholder="Motivo (opcional)"
+                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+              <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Bloquear
+                día</button>
+            </form>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="font-bold mb-4">Días bloqueados manualmente</h3>
+            <div id="listaDiasBloqueados"></div>
+          </div>
+
+          <div class="card p-4 mt-6">
+            <h3 class="font-bold mb-4">Jueves habilitados</h3>
+            <div id="listaJuevesHabilitados"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
+    const { createClient } = supabase;
+    const _sb = {
+      u: atob('aHR0cHM6Ly9lY3FqZmZ0dnZjeXFweHRkY25iYi5zdXBhYmFzZS5jbw=='),
+      k: atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW1WamNXcG1ablIyZG1ONWNYQjRkR1JqYm1KaUlpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzTmpRM01EQTVOalFzSW1WNGNDSTZNVEE0TURJM05qazJOSDAuaFE5NHZBQkFmdXRYS1JCMGJvQmV0LUhjblItVlc2TGluNklSVWVLRWw2bw==')
+    };
+    const supabaseClient = createClient(_sb.u, _sb.k);
+
+    const STRIPE_LINKS = {
+      normal: 'https://buy.stripe.com/4gM3cuh18gWY7Kr80ddAk00',
+      urgente: 'https://buy.stripe.com/aFa3cu8uC7mofcTdkxdAk02',
+      video: 'https://buy.stripe.com/eVqdR86mu8qsaWD4O1dAk01'
+    };
+
+    // ============================================
+    // SISTEMA DE FOLIOS
+    // ============================================
+    function generarFolio() {
+      const fecha = new Date();
+      const año = fecha.getFullYear().toString().slice(-2);
+      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+      const dia = String(fecha.getDate()).padStart(2, '0');
+      const hora = String(fecha.getHours()).padStart(2, '0');
+      const minuto = String(fecha.getMinutes()).padStart(2, '0');
+      const segundo = String(fecha.getSeconds()).padStart(2, '0');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      
+      return `${año}${mes}${dia}-${hora}${minuto}${segundo}${random}`;
+    }
+
+    // Estado
+    let currentStep = 1;
+    let selectedType = null;
+    let selectedDate = null;
+    let selectedTime = null;
+    let mesActual = new Date();
+    let folioGenerado = null;
+    let pacienteActualForm = null;
+    let timeoutBusqueda = null;
+
+    // ============================================
+    // FUNCIONES DB
+    // ============================================
+    async function guardarCita(cita) {
+      const { data, error } = await supabaseClient.from('citas').insert([cita]).select();
+      if (error) { alert('Error al guardar'); return null; }
+      return data[0];
+    }
+
+    async function obtenerCitas(fecha = null) {
+      let query = supabaseClient.from('citas').select('*').order('fecha').order('horario');
+      if (fecha) query = query.eq('fecha', fecha);
+      const { data } = await query;
+      return data || [];
+    }
+
+    async function obtenerDiasBloqueados() {
+      const { data } = await supabaseClient.from('dias_bloqueados').select('*').order('fecha');
+      return data || [];
+    }
+
+    async function obtenerJuevesHabilitados() {
+      const { data } = await supabaseClient.from('jueves_habilitados').select('*').order('fecha');
+      return data || [];
+    }
+
+    async function buscarPacientePorTelefono(telefono) {
+      const { data } = await supabaseClient
+        .from('pacientes')
+        .select('*')
+        .eq('telefono', telefono.trim())
+        .single();
+      return data;
+    }
+
+    async function upsertPaciente(paciente) {
+      const { data, error } = await supabaseClient
+        .from('pacientes')
+        .upsert(paciente, { onConflict: 'telefono' })
+        .select()
+        .single();
+      if (error) {
+        console.error('Error al guardar paciente:', error);
+        return null;
+      }
+      return data;
+    }
+
+    async function cancelarCitaDB(id) {
+      await supabaseClient.from('citas').delete().eq('id', id);
+    }
+
+    async function marcarPagado(id) {
+      await supabaseClient.from('citas').update({ pagado: true }).eq('id', id);
+    }
+
+    async function bloquearDia(bloqueo) {
+      const { data, error } = await supabaseClient.from('dias_bloqueados').insert([bloqueo]).select();
+      if (error) { alert('Error o ya bloqueado'); return null; }
+      return data[0];
+    }
+
+    async function desbloquearDia(id) {
+      await supabaseClient.from('dias_bloqueados').delete().eq('id', id);
+    }
+
+    async function habilitarJueves(fecha) {
+      const { data, error } = await supabaseClient.from('jueves_habilitados').insert([{ fecha }]).select();
+      if (error) { alert('Error o ya habilitado'); return null; }
+      return data[0];
+    }
+
+    async function deshabilitarJueves(id) {
+      await supabaseClient.from('jueves_habilitados').delete().eq('id', id);
+    }
+
+    async function buscarPaciente(termino) {
+      const { data: pacientes } = await supabaseClient
+        .from('pacientes')
+        .select('*')
+        .or(`nombre.ilike.%${termino}%,apellido_paterno.ilike.%${termino}%,apellido_materno.ilike.%${termino}%,telefono.ilike.%${termino}%`)
+        .order('created_at', { ascending: false });
+
+      if (pacientes && pacientes.length > 0) {
+        const telefonos = pacientes.map(p => p.telefono);
+        const { data: citas } = await supabaseClient
+          .from('citas')
+          .select('*')
+          .in('telefono', telefonos)
+          .order('fecha', { ascending: false });
+
+        return citas || [];
+      }
+
+      // Buscar por folio
+      const { data: citasPorFolio } = await supabaseClient
+        .from('citas')
+        .select('*')
+        .ilike('folio', `%${termino}%`)
+        .order('fecha', { ascending: false });
+
+      return citasPorFolio || [];
+    }
+
+    // ============================================
+    // VALIDACIONES
+    // ============================================
+    function validarTelefono(telefono) {
+      const regex = /^[0-9]{10}$/;
+      return regex.test(telefono.trim());
+    }
+
+    function validarEmail(email) {
+      if (!email) return true;
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return regex.test(email);
+    }
+
+    function validarTexto(texto, minLength = 1) {
+      return texto && texto.trim().length >= minLength;
+    }
+
+    function sanitizarTexto(texto) {
+      return texto.trim().replace(/[<>"']/g, '');
+    }
+
+    // ============================================
+    // UI STEPS
+    // ============================================
+    function showStep(step) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`paso${i}`)?.classList.add('hidden');
+        const ind = document.getElementById(`stepInd${i}`);
+        if (ind) {
+          ind.classList.remove('active', 'completed', 'inactive');
+          if (i < step) ind.classList.add('completed');
+          else if (i === step) ind.classList.add('active');
+          else ind.classList.add('inactive');
+        }
+      }
+      if (step <= 4) document.getElementById(`paso${step}`).classList.remove('hidden');
+      const progress = (step / 4) * 100;
+      document.getElementById('progressBar').style.width = `${progress}%`;
+      currentStep = step;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ============================================
+    // PASO 1: TIPO
+    // ============================================
+    document.querySelectorAll('[data-tipo]').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('[data-tipo]').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedType = card.dataset.tipo;
+        setTimeout(() => showStep(2), 300);
+      });
+    });
+
+    // ============================================
+    // PASO 2: CALENDARIO
+    // ============================================
+    async function renderCalendar() {
+      const year = mesActual.getFullYear();
+      const month = mesActual.getMonth();
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+      document.getElementById('mesActual2').textContent = `${meses[month]} ${year}`;
+      document.getElementById('mesNombre').textContent = `${meses[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const bloqueados = await obtenerDiasBloqueados();
+      const fechasBloqueadas = bloqueados.map(b => b.fecha);
+
+      const juevesHabilitados = await obtenerJuevesHabilitados();
+      const fechasJuevesHabilitados = juevesHabilitados.map(j => j.fecha);
+
+      const container = document.getElementById('calendarioDias');
+      container.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) container.appendChild(document.createElement('div'));
+
+      for (let d = 1; d <= lastDate; d++) {
+        const fecha = new Date(year, month, d);
+        fecha.setHours(0, 0, 0, 0);
+        const dow = fecha.getDay();
+        const isWeekend = dow === 0 || dow === 6;
+        const isPast = fecha < today;
+        const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isBlocked = fechasBloqueadas.includes(fechaStr);
+
+        const isThursday = dow === 4;
+        const isThursdayEnabled = fechasJuevesHabilitados.includes(fechaStr);
+        const isThursdayBlocked = isThursday && !isThursdayEnabled;
+
+        const cell = document.createElement('div');
+        cell.textContent = d;
+        cell.className = 'day-cell';
+
+        if (isPast || isWeekend) {
+          cell.classList.add('disabled');
+        } else if (isBlocked || isThursdayBlocked) {
+          cell.classList.add('blocked');
+        } else {
+          cell.addEventListener('click', () => {
+            selectedDate = fechaStr;
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+            cell.classList.add('selected');
+            setTimeout(() => showStep(3), 300);
+            renderHorarios();
+          });
+        }
+
+        container.appendChild(cell);
+      }
+    }
+
+    document.getElementById('prevMes').addEventListener('click', () => {
+      mesActual.setMonth(mesActual.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.getElementById('nextMes').addEventListener('click', () => {
+      mesActual.setMonth(mesActual.getMonth() + 1);
+      renderCalendar();
+    });
+
+    // ============================================
+    // PASO 3: HORARIOS
+    // ============================================
+    async function renderHorarios() {
+      document.getElementById('fechaSeleccionada').textContent = selectedDate;
+      const container = document.getElementById('horariosContainer');
+      container.innerHTML = '<p class="col-span-full text-center text-gray-500">Cargando...</p>';
+
+      const citas = await obtenerCitas(selectedDate);
+      const ocupados = citas.map(c => c.horario);
+
+      let horarios = [];
+      if (selectedType === 'urgente') {
+        for (let h = 8; h <= 9.5; h += 0.5) {
+          const hora = Math.floor(h);
+          const min = (h % 1) * 60;
+          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
+        }
+        for (let h = 15; h <= 16; h += 0.5) {
+          const hora = Math.floor(h);
+          const min = (h % 1) * 60;
+          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
+        }
+      } else if (selectedType === 'video') {
+        for (let h = 10; h < 19; h += 0.25) {
+          const hora = Math.floor(h);
+          const min = (h % 1) * 60;
+          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
+        }
+      } else {
+        for (let h = 10; h < 14; h += 0.5) {
+          const hora = Math.floor(h);
+          const min = (h % 1) * 60;
+          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
+        }
+      }
+
+      container.innerHTML = '';
+      horarios.forEach(h => {
+        const slot = document.createElement('div');
+        slot.textContent = h.substring(0, 5);
+        slot.className = 'time-slot';
+
+        if (ocupados.includes(h)) {
+          slot.classList.add('disabled');
+        } else {
+          slot.addEventListener('click', () => {
+            selectedTime = h;
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            slot.classList.add('selected');
+            setTimeout(() => showStep(4), 300);
+          });
+        }
+
+        container.appendChild(slot);
+      });
+    }
+
+    // ============================================
+    // PASO 4: AUTOCOMPLETADO
+    // ============================================
+    document.getElementById('inputTelefono').addEventListener('input', async (e) => {
+      const telefono = e.target.value.trim();
+
+      if (timeoutBusqueda) clearTimeout(timeoutBusqueda);
+
+      document.getElementById('indicadorBusqueda').classList.add('hidden');
+      document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
+
+      if (telefono.length === 10) {
+        document.getElementById('indicadorBusqueda').classList.remove('hidden');
+
+        timeoutBusqueda = setTimeout(async () => {
+          const paciente = await buscarPacientePorTelefono(telefono);
+
+          document.getElementById('indicadorBusqueda').classList.add('hidden');
+
+          if (paciente) {
+            pacienteActualForm = paciente;
+            document.getElementById('mensajePacienteEncontrado').classList.remove('hidden');
+
+            document.getElementById('inputNombre').value = paciente.nombre;
+            document.getElementById('inputApellidoPaterno').value = paciente.apellido_paterno;
+            document.getElementById('inputApellidoMaterno').value = paciente.apellido_materno;
+            document.getElementById('inputEmail').value = paciente.email || '';
+
+            document.getElementById('inputNombre').readOnly = true;
+            document.getElementById('inputApellidoPaterno').readOnly = true;
+            document.getElementById('inputApellidoMaterno').readOnly = true;
+
+            document.getElementById('campoNombre').classList.add('opacity-75');
+            document.getElementById('campoApellidoPaterno').classList.add('opacity-75');
+            document.getElementById('campoApellidoMaterno').classList.add('opacity-75');
+
+            document.getElementById('inputMotivo').focus();
+          } else {
+            pacienteActualForm = null;
+            document.getElementById('inputNombre').value = '';
+            document.getElementById('inputApellidoPaterno').value = '';
+            document.getElementById('inputApellidoMaterno').value = '';
+            document.getElementById('inputEmail').value = '';
+
+            document.getElementById('inputNombre').readOnly = false;
+            document.getElementById('inputApellidoPaterno').readOnly = false;
+            document.getElementById('inputApellidoMaterno').readOnly = false;
+
+            document.getElementById('campoNombre').classList.remove('opacity-75');
+            document.getElementById('campoApellidoPaterno').classList.remove('opacity-75');
+            document.getElementById('campoApellidoMaterno').classList.remove('opacity-75');
+          }
+        }, 500);
+      }
+    });
+
+    // ============================================
+    // PASO 4: FORM SUBMIT
+    // ============================================
+    document.getElementById('formDatos').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const telefono = document.getElementById('inputTelefono').value.trim();
+      const nombre = document.getElementById('inputNombre').value.trim();
+      const apellidoPaterno = document.getElementById('inputApellidoPaterno').value.trim();
+      const apellidoMaterno = document.getElementById('inputApellidoMaterno').value.trim();
+      const email = document.getElementById('inputEmail').value.trim();
+      const motivo = document.getElementById('inputMotivo').value.trim();
+
+      // Validaciones
+      if (!validarTelefono(telefono)) {
+        alert('❌ El teléfono debe tener exactamente 10 dígitos numéricos');
+        return;
+      }
+
+      if (!validarTexto(nombre, 2)) {
+        alert('❌ El nombre debe tener al menos 2 caracteres');
+        return;
+      }
+
+      if (!validarTexto(apellidoPaterno, 2)) {
+        alert('❌ El apellido paterno debe tener al menos 2 caracteres');
+        return;
+      }
+
+      if (!validarTexto(apellidoMaterno, 2)) {
+        alert('❌ El apellido materno debe tener al menos 2 caracteres');
+        return;
+      }
+
+      if (email && !validarEmail(email)) {
+        alert('❌ El formato del email no es válido');
+        return;
+      }
+
+      if (!validarTexto(motivo, 10)) {
+        alert('❌ El motivo de consulta debe tener al menos 10 caracteres');
+        return;
+      }
+
+      // Sanitizar
+      const nombreSanitizado = sanitizarTexto(nombre).toUpperCase();
+      const apellidoPaternoSanitizado = sanitizarTexto(apellidoPaterno).toUpperCase();
+      const apellidoMaternoSanitizado = sanitizarTexto(apellidoMaterno).toUpperCase();
+      const emailSanitizado = email ? sanitizarTexto(email).toLowerCase() : null;
+      const motivoSanitizado = sanitizarTexto(motivo);
+
+      // Generar folio
+      folioGenerado = generarFolio();
+
+      // Crear paciente
+      const paciente = await upsertPaciente({
+        telefono,
+        nombre: nombreSanitizado,
+        apellido_paterno: apellidoPaternoSanitizado,
+        apellido_materno: apellidoMaternoSanitizado,
+        email: emailSanitizado
+      });
+
+      if (!paciente) {
+        alert('❌ Error al guardar los datos del paciente. Intenta de nuevo.');
+        return;
+      }
+
+      // Crear cita con FOLIO
+      const cita = {
+        paciente_id: paciente.id,
+        folio: folioGenerado,
+        nombre: `${nombreSanitizado} ${apellidoPaternoSanitizado} ${apellidoMaternoSanitizado}`,
+        telefono,
+        email: emailSanitizado,
+        motivo: motivoSanitizado,
+        fecha: selectedDate,
+        horario: selectedTime,
+        tipo: selectedType,
+        pagado: false
+      };
+
+      const saved = await guardarCita(cita);
+      if (saved) {
+        const precios = { normal: '$1,000', urgente: '$2,000', video: '$200' };
+        const tipos = { normal: 'Consulta General', urgente: 'Consulta Urgente', video: 'Videollamada' };
+
+        document.getElementById('folioDisplay').textContent = folioGenerado;
+        document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0, 5)}`;
+        document.getElementById('resumenTipo').textContent = tipos[selectedType];
+        document.getElementById('resumenPrecio').textContent = precios[selectedType];
+        document.getElementById('linkPago').href = STRIPE_LINKS[selectedType];
+
+        document.getElementById('paso4').classList.add('hidden');
+        document.getElementById('confirmacion').classList.remove('hidden');
+
+        document.getElementById('formDatos').reset();
+        pacienteActualForm = null;
+        document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
+
+        document.getElementById('inputNombre').readOnly = false;
+        document.getElementById('inputApellidoPaterno').readOnly = false;
+        document.getElementById('inputApellidoMaterno').readOnly = false;
+        document.getElementById('campoNombre').classList.remove('opacity-75');
+        document.getElementById('campoApellidoPaterno').classList.remove('opacity-75');
+        document.getElementById('campoApellidoMaterno').classList.remove('opacity-75');
+      }
+    });
+
+    // ============================================
+    // NAVEGACIÓN
+    // ============================================
+    document.getElementById('btnBack2').addEventListener('click', () => showStep(1));
+    document.getElementById('btnBack3').addEventListener('click', () => showStep(2));
+    document.getElementById('btnBack4').addEventListener('click', () => showStep(3));
+
+    // ============================================
+    // ADMIN
+    // ============================================
+    document.getElementById('btnAdmin').addEventListener('click', () => {
+      document.getElementById('vistaReserva').classList.add('hidden');
+      document.getElementById('vistaAdmin').classList.remove('hidden');
+    });
+
+    document.getElementById('btnVolverLogin').addEventListener('click', () => {
+      document.getElementById('vistaAdmin').classList.add('hidden');
+      document.getElementById('vistaReserva').classList.remove('hidden');
+    });
+
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+
+      if (user === 'admin' && pass === '1234') {
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+        await cargarAdmin();
+      } else {
+        alert('❌ Credenciales incorrectas');
+      }
+    });
+
+    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
+      document.getElementById('adminPanel').classList.add('hidden');
+      document.getElementById('adminLogin').classList.remove('hidden');
+      document.getElementById('vistaAdmin').classList.add('hidden');
+      document.getElementById('vistaReserva').classList.remove('hidden');
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        if (tab === 'resumen') document.getElementById('tabResumen').classList.remove('hidden');
+        if (tab === 'pacientes') document.getElementById('tabPacientes').classList.remove('hidden');
+        if (tab === 'configuracion') document.getElementById('tabConfiguracion').classList.remove('hidden');
+      });
+    });
+
+    async function cargarAdmin() {
+      const citas = await obtenerCitas();
+      const hoy = new Date().toISOString().split('T')[0];
+
+      const citasHoy = citas.filter(c => c.fecha === hoy).length;
+      const inicioSemana = new Date();
+      inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+      const finSemana = new Date(inicioSemana);
+      finSemana.setDate(finSemana.getDate() + 6);
+      const citasSemana = citas.filter(c => {
+        const f = new Date(c.fecha + 'T00:00:00');
+        return f >= inicioSemana && f <= finSemana;
+      }).length;
+      const pendientes = citas.filter(c => !c.pagado).length;
+
+      document.getElementById('statHoy').textContent = citasHoy;
+      document.getElementById('statSemana').textContent = citasSemana;
+      document.getElementById('statPendientes').textContent = pendientes;
+      document.getElementById('statTotal').textContent = citas.length;
+
+      await actualizarListaCitas();
+      await actualizarProxima();
+      await actualizarBloqueados();
+      await actualizarJuevesHabilitados();
+    }
+
+    async function actualizarListaCitas(filtro = null) {
+      const container = document.getElementById('listaCitas');
+      const citas = await obtenerCitas(filtro);
+
+      if (citas.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin citas</p>';
+        return;
+      }
+
+      const tipos = { normal: 'General', urgente: 'Urgente', video: 'Video' };
+      const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
+
+      container.innerHTML = citas.map(c => `
+        <div class="border-b last:border-0 py-3">
+          <div class="flex justify-between items-start mb-2">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <p class="font-semibold text-sm">${iconos[c.tipo]} ${c.nombre}</p>
+                ${c.pagado ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>' : '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
+              </div>
+              <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0, 5)} • ${tipos[c.tipo]}</p>
+              <p class="text-xs text-blue-600 font-mono">Folio: ${c.folio || 'N/A'}</p>
+              <p class="text-xs text-gray-400 mt-1">${c.motivo}</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            ${!c.pagado ? `<button onclick="marcarComoPagado(${c.id})" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-semibold">Marcar pagado</button>` : ''}
+            <button onclick="cancelarCita(${c.id})" class="text-xs text-red-600 font-semibold">Cancelar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function actualizarProxima() {
+      const citas = await obtenerCitas();
+      const ahora = new Date();
+      const proxima = citas.find(c => new Date(`${c.fecha}T${c.horario}`) >= ahora);
+
+      const container = document.getElementById('proximaCitaContent');
+
+      if (proxima) {
+        const tipos = { normal: 'General', urgente: 'Urgente', video: 'Video' };
+        const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
+        container.innerHTML = `
+          <p class="font-bold">${iconos[proxima.tipo]} ${proxima.nombre}</p>
+          <p class="text-sm text-gray-600">${proxima.fecha} • ${proxima.horario.substring(0, 5)}</p>
+          <p class="text-xs text-blue-600 font-mono">Folio: ${proxima.folio || 'N/A'}</p>
+          <p class="text-xs text-gray-500 mt-1">${proxima.motivo}</p>
+          <p class="text-xs text-gray-400 mt-2">📞 ${proxima.telefono}</p>
+        `;
+      } else {
+        container.innerHTML = '<p class="text-gray-500 text-sm">No hay próximas</p>';
+      }
+    }
+
+    window.cancelarCita = async function (id) {
+      if (confirm('¿Cancelar esta cita?')) {
+        await cancelarCitaDB(id);
+        await cargarAdmin();
+      }
+    };
+
+    window.marcarComoPagado = async function (id) {
+      if (confirm('¿Marcar como pagado?')) {
+        await marcarPagado(id);
+        await cargarAdmin();
+      }
+    };
+
+    document.getElementById('filtroFecha').addEventListener('change', (e) => {
+      actualizarListaCitas(e.target.value || null);
+    });
+
+    document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
+      document.getElementById('filtroFecha').value = '';
+      actualizarListaCitas();
+    });
+
+    // Búsqueda de pacientes
+    let pacienteActual = null;
+
+    document.getElementById('btnBuscarPaciente').addEventListener('click', async () => {
+      const termino = document.getElementById('inputBuscarPaciente').value.trim();
+      if (!termino) {
+        alert('Escribe un nombre, teléfono o folio');
+        return;
+      }
+
+      const resultados = await buscarPaciente(termino);
+
+      if (resultados.length === 0) {
+        document.getElementById('resultadosBusqueda').classList.add('hidden');
+        document.getElementById('sinResultados').classList.remove('hidden');
+        return;
+      }
+
+      const paciente = resultados[0];
+      pacienteActual = paciente;
+
+      document.getElementById('sinResultados').classList.add('hidden');
+      document.getElementById('resultadosBusqueda').classList.remove('hidden');
+
+      document.getElementById('nombrePaciente').textContent = paciente.nombre;
+      document.getElementById('contactoPaciente').textContent = `📞 ${paciente.telefono}${paciente.email ? ' • 📧 ' + paciente.email : ''}`;
+
+      const historial = resultados.filter(c => c.telefono === paciente.telefono);
+      document.getElementById('totalCitasPaciente').textContent = `${historial.length} cita${historial.length !== 1 ? 's' : ''}`;
+
+      const tipos = { normal: 'General', urgente: 'Urgente', video: 'Video' };
+      const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
+
+      document.getElementById('historialCitas').innerHTML = historial.map(c => `
+        <div class="p-3 bg-gray-50 rounded-lg">
+          <div class="flex justify-between items-start mb-1">
+            <p class="font-semibold text-sm">${iconos[c.tipo]} ${tipos[c.tipo]}</p>
+            ${c.pagado ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>' : '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
+          </div>
+          <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0, 5)}</p>
+          <p class="text-xs text-blue-600 font-mono">Folio: ${c.folio || 'N/A'}</p>
+          <p class="text-xs text-gray-600 mt-1">${c.motivo}</p>
+        </div>
+      `).join('');
+    });
+
+    document.getElementById('btnCerrarPaciente').addEventListener('click', () => {
+      document.getElementById('resultadosBusqueda').classList.add('hidden');
+      document.getElementById('inputBuscarPaciente').value = '';
+      pacienteActual = null;
+    });
+
+    // Configuración
+    document.getElementById('formDesbloquearJueves').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fecha = document.getElementById('fechaDesbloquearJueves').value;
+      const fechaObj = new Date(fecha + 'T00:00:00');
+
+      if (fechaObj.getDay() !== 4) {
+        alert('⚠️ La fecha seleccionada no es jueves');
+        return;
+      }
+
+      const result = await habilitarJueves(fecha);
+      if (result) {
+        await actualizarJuevesHabilitados();
+        await renderCalendar();
+        e.target.reset();
+        alert('✅ Jueves habilitado');
+      }
+    });
+
+    document.getElementById('formBloquearDia').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const bloqueo = {
+        fecha: document.getElementById('fechaBloquearDia').value,
+        motivo: document.getElementById('motivoBloqueo').value || 'Sin motivo'
+      };
+      const result = await bloquearDia(bloqueo);
+      if (result) {
+        await actualizarBloqueados();
+        await renderCalendar();
+        e.target.reset();
+        alert('✅ Día bloqueado');
+      }
+    });
+
+    async function actualizarBloqueados() {
+      const container = document.getElementById('listaDiasBloqueados');
+      const bloqueados = await obtenerDiasBloqueados();
+
+      if (bloqueados.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin bloqueos</p>';
+        return;
+      }
+
+      container.innerHTML = bloqueados.map(b => `
+        <div class="border-b last:border-0 py-3 flex justify-between items-center">
+          <div>
+            <p class="font-semibold text-sm">📅 ${b.fecha}</p>
+            <p class="text-xs text-gray-500">${b.motivo}</p>
+          </div>
+          <button onclick="eliminarBloqueo(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button>
+        </div>
+      `).join('');
+    }
+
+    async function actualizarJuevesHabilitados() {
+      const container = document.getElementById('listaJuevesHabilitados');
+      const jueves = await obtenerJuevesHabilitados();
+
+      if (jueves.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Ningún jueves habilitado</p>';
+        return;
+      }
+
+      container.innerHTML = jueves.map(j => `
+        <div class="border-b last:border-0 py-3 flex justify-between items-center">
+          <div>
+            <p class="font-semibold text-sm">📅 ${j.fecha}</p>
+            <p class="text-xs text-green-600">Jueves habilitado</p>
+          </div>
+          <button onclick="eliminarJuevesHabilitado(${j.id})" class="text-xs text-red-600 font-semibold">Deshabilitar</button>
+        </div>
+      `).join('');
+    }
+
+    window.eliminarBloqueo = async function (id) {
+      if (confirm('¿Desbloquear?')) {
+        await desbloquearDia(id);
+        await actualizarBloqueados();
+        await renderCalendar();
+      }
+    };
+
+    window.eliminarJuevesHabilitado = async function (id) {
+      if (confirm('¿Deshabilitar este jueves?')) {
+        await deshabilitarJueves(id);
+        await actualizarJuevesHabilitados();
+        await renderCalendar();
+      }
+    };
+
+    // ============================================
+    // INIT
+    // ============================================
+    window.addEventListener('load', () => {
+      renderCalendar();
+    });
+  </script>
+</body>
+</html>
