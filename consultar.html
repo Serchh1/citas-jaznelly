@@ -374,11 +374,12 @@
 
   <script>
     const { createClient } = supabase;
-    const _sb = {
-      u: atob('aHR0cHM6Ly9lY3FqZmZ0dnZjeXFweHRkY25iYi5zdXBhYmFzZS5jbw=='),
-      k: atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW1WamNXcG1ablIyZG1ONWNYQjRkR1JqYm1KaUlpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzTmpRM01EQTVOalFzSW1WNGNDSTZNVEE0TURJM05qazJOSDAuaFE5NHZBQkFmdXRYS1JCMGJvQmV0LUhjblItVlc2TGluNklSVWVLRWw2bw==')
-    };
-    const supabaseClient = createClient(_sb.u, _sb.k);
+    
+    // IMPORTANTE: Reemplaza estas credenciales con las tuyas de Supabase
+    const supabaseClient = createClient(
+      'https://ecqjfftvvcyqpxtdcnbb.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjcWpmZnR2dmN5cXB4dGRjbmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDA5NjQsImV4cCI6MjA4MDI3Njk2NH0.hQ94vABAfutXKRB0boBet-HcnR-VW6Lin6IRUeKEl6o'
+    );
 
     const STRIPE_LINKS = {
       normal: 'https://buy.stripe.com/4gM3cuh18gWY7Kr80ddAk00',
