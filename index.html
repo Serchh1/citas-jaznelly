@@ -1,1582 +1,840 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dra. Jaznelly Lesso Zamora</title>
+  <title>Dra. Jaznelly Lesso Zamora - Oftalmología</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+    
     * {
-      font-family: 'DM Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: #f8fafc;
+      font-family: 'DM Sans', sans-serif;
+      background: #ffffff;
+      overflow-x: hidden;
     }
 
-    .progress-bar {
-      height: 4px;
-      background: #e2e8f0;
-      border-radius: 2px;
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .hero-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%);
+      position: relative;
       overflow: hidden;
     }
 
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      transition: width 0.3s ease;
-    }
-
-    .step-indicator {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s;
-    }
-
-    .step-indicator.active {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    .step-indicator.inactive {
-      background: #e2e8f0;
-      color: #64748b;
-    }
-
-    .step-indicator.completed {
-      background: #10b981;
-      color: white;
-    }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s;
-    }
-
-    .card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .option-card {
-      border: 2px solid #e2e8f0;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-
-    .option-card:hover {
-      border-color: #cbd5e1;
-      transform: translateY(-2px);
-    }
-
-    .option-card.selected {
-      border-color: #3b82f6;
-      background: #eff6ff;
-    }
-
-    .calendar-mini {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-
-    .day-cell {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .day-cell:hover:not(.disabled):not(.blocked) {
-      background: #f1f5f9;
-    }
-
-    .day-cell.selected {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      font-weight: 600;
-    }
-
-    .day-cell.disabled {
-      color: #cbd5e1;
-      cursor: not-allowed;
-    }
-
-    .day-cell.blocked {
-      background: #fee2e2;
-      color: #dc2626;
-      cursor: not-allowed;
-      position: relative;
-    }
-
-    .day-cell.blocked::after {
-      content: '×';
+    .hero-gradient::before {
+      content: '';
       position: absolute;
-      top: 2px;
-      right: 2px;
-      font-size: 10px;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.3) 0%, transparent 50%);
+      animation: pulseGlow 8s ease-in-out infinite;
     }
 
-    .time-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
     }
 
-    .time-slot {
-      padding: 12px;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
+    .floating {
+      animation: floating 6s ease-in-out infinite;
     }
 
-    .time-slot:hover:not(.disabled) {
-      border-color: #3b82f6;
-      background: #eff6ff;
+    @keyframes floating {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
     }
 
-    .time-slot.selected {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      border-color: transparent;
-      color: white;
-    }
-
-    .time-slot.disabled {
-      background: #f8fafc;
-      color: #cbd5e1;
-      cursor: not-allowed;
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
       color: white;
       font-weight: 600;
-      padding: 14px 28px;
-      border-radius: 12px;
+      padding: 18px 36px;
+      border-radius: 14px;
       border: none;
       cursor: pointer;
-      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
     }
 
     .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 36px rgba(59, 130, 246, 0.4);
     }
 
     .btn-secondary {
       background: white;
-      color: #475569;
+      color: #3b82f6;
       font-weight: 600;
-      padding: 14px 28px;
-      border-radius: 12px;
-      border: 2px solid #e2e8f0;
+      padding: 18px 36px;
+      border-radius: 14px;
+      border: 2px solid #3b82f6;
       cursor: pointer;
-      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-secondary::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: #eff6ff;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-secondary:hover::after {
+      width: 300px;
+      height: 300px;
     }
 
     .btn-secondary:hover {
-      border-color: #cbd5e1;
-      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
     }
 
-    .tab-btn {
-      background: #f1f5f9;
-      color: #64748b;
-      transition: all 0.2s;
+    .btn-secondary span {
+      position: relative;
+      z-index: 1;
     }
 
-    .tab-btn:hover {
-      background: #e2e8f0;
+    .card {
+      background: white;
+      border-radius: 20px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid #f1f5f9;
+      position: relative;
+      overflow: hidden;
     }
 
-    .tab-btn.active {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%);
+      opacity: 0;
+      transition: opacity 0.5s;
     }
 
-    .fade-in {
-      animation: fadeIn 0.3s ease-out;
+    .card:hover::before {
+      opacity: 1;
     }
 
-    @keyframes fadeIn {
+    .card:hover {
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      border-color: #3b82f6;
+    }
+
+    .service-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+      transition: all 0.4s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .card:hover .service-icon {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.8s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeInUp {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(40px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+
+    .photo-frame {
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    input[type="date"] {
-      min-width: 0;
-      width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
+    .photo-frame:hover {
+      transform: scale(1.02) translateY(-8px);
+      box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
     }
 
-    @media (max-width: 640px) {
-      .day-cell {
-        font-size: 12px;
-      }
+    .photo-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent);
+      pointer-events: none;
+    }
 
-      .time-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
+    .schedule-badge {
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      color: #065f46;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
 
-      input[type="date"] {
-        font-size: 14px;
-        padding: 10px 8px !important;
-      }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
 
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        margin-left: 4px;
-        flex-shrink: 0;
-      }
+    .info-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
 
-      .flex.gap-2 {
-        flex-wrap: nowrap;
+    .info-icon:hover {
+      transform: rotate(360deg) scale(1.1);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+    }
+
+    .map-container {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+      height: 450px;
+      transition: all 0.4s;
+    }
+
+    .map-container:hover {
+      box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+      transform: scale(1.01);
+    }
+
+    nav {
+      backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+    }
+
+    .sticky-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .decorative-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+      animation: float 8s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(30px, -30px) rotate(180deg); }
+    }
+
+    .gallery-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      transition: all 0.4s;
+    }
+
+    .gallery-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(99, 102, 241, 0.8));
+      opacity: 0;
+      transition: opacity 0.4s;
+      z-index: 1;
+    }
+
+    .gallery-item:hover::before {
+      opacity: 1;
+    }
+
+    .gallery-item img {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.1);
+    }
+
+    .section-divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+      margin: 80px auto;
+      max-width: 200px;
+      animation: expand 2s ease-in-out infinite;
+    }
+
+    @keyframes expand {
+      0%, 100% { max-width: 200px; opacity: 0.5; }
+      50% { max-width: 400px; opacity: 1; }
+    }
+
+    .section {
+      padding: 100px 0;
+      position: relative;
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    @media (max-width: 768px) {
+      .section {
+        padding: 60px 0;
       }
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(10px); }
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   </style>
 </head>
-
 <body>
 
-  <!-- Header Fijo -->
-  <header class="bg-white border-b sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div>
-        <h1 class="text-lg font-bold text-gray-900">Dra. Jaznelly Lesso</h1>
-        <p class="text-xs text-gray-500">Oftalmología</p>
-      </div>
-      <button id="btnAdmin" class="text-sm text-blue-600 font-semibold">Admin</button>
-    </div>
-  </header>
-
-  <!-- Contenedor Principal -->
-  <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
-
-    <!-- VISTA: Reservar Cita -->
-    <div id="vistaReserva">
-
-      <!-- Progreso -->
-      <div class="mb-8">
-        <div class="flex justify-between items-center mb-3">
-          <div class="flex items-center gap-2">
-            <div class="step-indicator active" id="stepInd1">1</div>
-            <span class="text-sm font-medium text-gray-700">Tipo</span>
-          </div>
-          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
-          <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd2">2</div>
-            <span class="text-sm font-medium text-gray-400">Fecha</span>
-          </div>
-          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
-          <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd3">3</div>
-            <span class="text-sm font-medium text-gray-400">Hora</span>
-          </div>
-          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
-          <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd4">4</div>
-            <span class="text-sm font-medium text-gray-400">Datos</span>
-          </div>
+  <!-- Navegación -->
+  <nav class="sticky-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex justify-between items-center">
+        <div class="fade-in-up">
+          <h1 class="text-xl font-bold text-gray-900">Dra. Jaznelly Lesso Zamora</h1>
+          <p class="text-sm text-blue-600 font-semibold">Oftalmología Especializada</p>
         </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressBar" style="width: 25%"></div>
-        </div>
-      </div>
-
-      <!-- Paso 1: Tipo de Consulta -->
-      <div id="paso1" class="fade-in">
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Selecciona tu consulta</h2>
-        <p class="text-gray-600 mb-6">Elige el tipo de atención que necesitas</p>
-
-        <div class="space-y-3">
-          <div class="option-card card p-4" data-tipo="normal">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-2xl">🏥</span>
-                  <h3 class="font-bold text-gray-900">Consulta General</h3>
-                </div>
-                <p class="text-sm text-gray-600 mb-2">Revisión completa y diagnóstico</p>
-                <p class="text-xs text-gray-500">⏰ 30 min • 📅 L-V 10:00-14:00</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-gray-900">$1,000</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="option-card card p-4" data-tipo="urgente">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-2xl">🚨</span>
-                  <h3 class="font-bold text-gray-900">Consulta Urgente</h3>
-                </div>
-                <p class="text-sm text-gray-600 mb-2">Atención prioritaria inmediata</p>
-                <p class="text-xs text-gray-500">⏰ 30 min • 📅 L-V 8:00-9:30 | 15:00-16:00</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-gray-900">$2,000</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="option-card card p-4" data-tipo="video">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-2xl">💻</span>
-                  <h3 class="font-bold text-gray-900">Videollamada</h3>
-                </div>
-                <p class="text-sm text-gray-600 mb-2">Consulta virtual para seguimiento</p>
-                <p class="text-xs text-gray-500">⏰ 15 min • 📅 L-V 10:00-19:00</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-gray-900">$200</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <p class="text-sm text-amber-800">
-            <strong>💡 Nota:</strong> Las videollamadas son solo para dudas y seguimiento. No incluyen recetas.
-          </p>
-        </div>
-      </div>
-
-      <!-- Paso 2: Fecha -->
-      <div id="paso2" class="hidden">
-        <div class="flex items-center justify-between mb-6">
-          <button id="btnBack2" class="btn-secondary">← Atrás</button>
-          <div class="text-center">
-            <h2 class="text-xl font-bold text-gray-900">Selecciona la fecha</h2>
-            <p class="text-sm text-gray-500" id="mesNombre">Enero 2025</p>
-          </div>
-          <div class="w-24"></div>
-        </div>
-
-        <div class="card p-4">
-          <div class="flex justify-between items-center mb-4">
-            <button id="prevMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
-              ←
-            </button>
-            <span class="font-semibold text-gray-900" id="mesActual2">Enero 2025</span>
-            <button id="nextMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
-              →
-            </button>
-          </div>
-
-          <div class="calendar-mini mb-2">
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">D</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">L</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">J</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">V</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">S</div>
-          </div>
-
-          <div class="calendar-mini" id="calendarioDias">
-            <!-- Generado dinámicamente -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Paso 3: Hora -->
-      <div id="paso3" class="hidden">
-        <div class="flex items-center justify-between mb-6">
-          <button id="btnBack3" class="btn-secondary">← Atrás</button>
-          <div class="text-center">
-            <h2 class="text-xl font-bold text-gray-900">Elige tu horario</h2>
-            <p class="text-sm text-gray-500" id="fechaSeleccionada">-</p>
-          </div>
-          <div class="w-24"></div>
-        </div>
-
-        <div class="card p-4">
-          <div id="horariosContainer" class="time-grid">
-            <!-- Generado dinámicamente -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Paso 4: Datos -->
-      <div id="paso4" class="hidden">
-        <div class="flex items-center justify-between mb-6">
-          <button id="btnBack4" class="btn-secondary">← Atrás</button>
-          <h2 class="text-xl font-bold text-gray-900">Tus datos</h2>
-          <div class="w-24"></div>
-        </div>
-
-        <form id="formDatos" class="space-y-4">
-          <!-- Teléfono (primero para buscar) -->
-          <div class="card p-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono * <span
-                class="text-xs text-gray-500">(10 dígitos)</span></label>
-            <input type="tel" id="inputTelefono" required maxlength="10" pattern="[0-9]{10}"
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="4491234567">
-            <p class="text-xs text-gray-500 mt-1">Ingresa tu teléfono para buscar tus datos</p>
-          </div>
-
-          <!-- Indicador de búsqueda -->
-          <div id="indicadorBusqueda" class="hidden card p-3 bg-blue-50 border border-blue-200">
-            <p class="text-sm text-blue-700 flex items-center gap-2">
-              <span class="animate-pulse">🔍</span> Buscando tus datos...
-            </p>
-          </div>
-
-          <!-- Mensaje paciente encontrado -->
-          <div id="mensajePacienteEncontrado" class="hidden card p-3 bg-green-50 border border-green-200">
-            <p class="text-sm text-green-700 flex items-center gap-2">
-              <span>✅</span> ¡Te encontramos! Solo confirma tu motivo de consulta
-            </p>
-          </div>
-
-          <!-- Nombre -->
-          <div class="card p-4" id="campoNombre">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label>
-            <input type="text" id="inputNombre" required
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="JUAN"
-              style="text-transform: uppercase;">
-          </div>
-
-          <!-- Apellido Paterno -->
-          <div class="card p-4" id="campoApellidoPaterno">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Paterno *</label>
-            <input type="text" id="inputApellidoPaterno" required
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="PÉREZ"
-              style="text-transform: uppercase;">
-          </div>
-
-          <!-- Apellido Materno -->
-          <div class="card p-4" id="campoApellidoMaterno">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Materno *</label>
-            <input type="text" id="inputApellidoMaterno" required
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="GARCÍA"
-              style="text-transform: uppercase;">
-          </div>
-
-          <!-- Email -->
-          <div class="card p-4" id="campoEmail">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Email <span
-                class="text-xs text-gray-500">(opcional)</span></label>
-            <input type="email" id="inputEmail" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="tu@email.com">
-          </div>
-
-          <!-- Motivo de consulta (siempre visible) -->
-          <div class="card p-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de consulta *</label>
-            <textarea id="inputMotivo" required rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="Describe tu situación..."></textarea>
-          </div>
-
-          <button type="submit" class="btn-primary w-full">
-            Confirmar reserva →
-          </button>
-        </form>
-      </div>
-
-      <!-- Paso 5: Confirmación -->
-      <div id="confirmacion" class="hidden">
-        <div class="text-center mb-6">
-          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span class="text-4xl">✓</span>
-          </div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Cita confirmada!</h2>
-          <p class="text-gray-600">Tu reserva ha sido guardada</p>
-        </div>
-
-        <div class="card p-6 mb-4">
-          <div class="space-y-4">
-            <div>
-              <p class="text-xs text-gray-500 mb-1">FECHA Y HORA</p>
-              <p class="font-bold text-lg" id="resumenFecha">-</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 mb-1">TIPO</p>
-              <p class="font-semibold" id="resumenTipo">-</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
-              <p class="text-3xl font-bold text-blue-600" id="resumenPrecio">-</p>
-            </div>
-          </div>
-        </div>
-
-        <a href="#" id="linkPago" target="_blank" class="btn-primary w-full block text-center mb-4">
-          Pagar ahora 💳
+        <a href="tel:4771011668" class="hidden sm:flex items-center gap-2 bg-blue-50 px-5 py-3 rounded-xl text-blue-600 font-semibold hover:bg-blue-100 transition-all fade-in-up delay-1">
+          <span>📞</span>
+          <span>477 101 1668</span>
         </a>
+      </div>
+    </div>
+  </nav>
 
-        <div class="card p-4 bg-amber-50 border border-amber-200">
-          <p class="text-sm text-amber-800 text-center">
-            <strong>⏱ Tienes 3 horas</strong> para completar tu pago
+  <!-- Hero Section -->
+  <section class="hero-gradient section relative" style="padding: 120px 0;">
+    <div class="decorative-circle" style="width: 300px; height: 300px; top: 10%; right: -100px;"></div>
+    <div class="decorative-circle" style="width: 200px; height: 200px; bottom: 20%; left: -50px; animation-delay: -3s;"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        
+        <div>
+          <div class="fade-in-up">
+            <span class="schedule-badge mb-6 inline-block">Atención de Lunes a Viernes</span>
+          </div>
+          <h2 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight fade-in-up delay-1">
+            Cuidado experto para tu <span class="gradient-text" style="-webkit-text-fill-color: #ffffff; opacity: 0.9;">salud visual</span>
+          </h2>
+          <p class="text-xl text-blue-100 mb-8 leading-relaxed fade-in-up delay-2">
+            Especialista en cirugía de retina, vítreo y catarata. Tecnología de vanguardia para el diagnóstico y tratamiento de enfermedades oculares.
           </p>
+          
+          <div class="flex flex-col sm:flex-row gap-4 mb-10 fade-in-up delay-3">
+            <a href="agendar.html" class="btn-primary text-center">
+              Agendar cita
+            </a>
+            <a href="consultar.html" class="btn-secondary text-center">
+              <span>Consultar mi cita</span>
+            </a>
+          </div>
+
+          <div class="flex flex-wrap gap-6 text-sm text-blue-100 fade-in-up delay-4">
+            <div class="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+              <span class="text-green-400">✓</span>
+              <span>Cédula profesional verificada</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+              <span class="text-green-400">✓</span>
+              <span>15+ años de experiencia</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden lg:block fade-in-up delay-2 floating">
+          <div class="photo-frame glass-card p-3">
+            <img 
+              src="https://serverhap.arandadelaparra.com.mx/storage/directorio/172/primary/sJcBIhVfTXo7TrANpEUfBPRlbcAAe4ZYeYIJvZY3_lg.jpg" 
+              alt="Dra. Jaznelly Lesso Zamora"
+              class="w-full h-auto object-cover rounded-2xl"
+              style="max-height: 600px; object-position: center top;">
+          </div>
         </div>
       </div>
-
     </div>
 
-    <!-- VISTA: Admin (simplificada) -->
-    <div id="vistaAdmin" class="hidden">
-      <div id="adminLogin">
-        <div class="card p-6 max-w-sm mx-auto mt-12">
-          <h2 class="text-2xl font-bold text-center mb-6">Admin</h2>
-          <form id="formLogin" class="space-y-4">
-            <input type="text" id="loginUser" value="admin" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="Usuario">
-            <input type="password" id="loginPass" value="1234"
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="Contraseña">
-            <button type="submit" class="btn-primary w-full">Entrar</button>
-            <button type="button" id="btnVolverLogin" class="btn-secondary w-full">Cancelar</button>
-          </form>
+    <div class="scroll-indicator text-white text-center hidden lg:block">
+      <p class="text-sm mb-2 opacity-70">Desliza para más</p>
+      <div class="text-2xl">↓</div>
+    </div>
+  </section>
+
+  <!-- Galería visual -->
+  <section class="py-0 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 -mt-12 relative z-20">
+        <div class="gallery-item aspect-square fade-in-up delay-1">
+          <img src="https://scontent-qro1-1.xx.fbcdn.net/v/t39.30808-6/481448850_1174899527969798_8539127650838279055_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=mlpQe44f1ZUQ7kNvwFmx2cq&_nc_oc=AdkNNtaKk6zF2OIwnDSjMbwuOQjRlJA9cYhdksFcvhmvSOC_c-Htq216omuuq7zGwSk&_nc_zt=23&_nc_ht=scontent-qro1-1.xx&_nc_gid=7Jky1JrugJ14BC3CeTHDuw&oh=00_Afojb11zapEVHVE5T6I6lsQEGGJi_i-D2RZv9QZdP8gE2g&oe=696F13F1" alt="Consultorio" class="w-full h-full object-cover">
+        </div>
+        <div class="gallery-item aspect-square fade-in-up delay-2">
+          <img src="https://scontent-qro1-2.xx.fbcdn.net/v/t39.30808-6/468409869_1131241048359469_7791558490911882051_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=127cfc&_nc_ohc=TtOQlJIj7VEQ7kNvwHmt0jQ&_nc_oc=AdkF3u9yO97aYg9VStRmQL-VqbxbR_pzS-O7hzkqJNiMwZNsxXG7xHUvQADtGxinEZE&_nc_zt=23&_nc_ht=scontent-qro1-2.xx&_nc_gid=NLQHhip22xt4wFr6EpCT7A&oh=00_AfojE0LPY6FCMMQVHPY7q7DvfxO94miwY6P1u_2NauSghA&oe=696F0748" alt="Equipamiento" class="w-full h-full object-cover">
+        </div>
+        <div class="gallery-item aspect-square fade-in-up delay-3">
+          <img src="https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?w=400&h=400&fit=crop" alt="Consulta oftalmológica" class="w-full h-full object-cover">
+        </div>
+        <div class="gallery-item aspect-square fade-in-up delay-4">
+          <img src="https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=400&h=400&fit=crop" alt="Tecnología médica" class="w-full h-full object-cover">
         </div>
       </div>
+    </div>
+  </section>
 
-      <div id="adminPanel" class="hidden">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Panel Admin</h2>
-          <button id="btnCerrarSesion" class="text-sm text-red-600 font-semibold">Salir</button>
+  <!-- Stats Section -->
+  <section class="section bg-gradient-to-br from-gray-50 to-blue-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="text-center fade-in-up delay-1">
+          <div class="stat-number mb-2">15+</div>
+          <p class="text-gray-600 font-semibold">Años de experiencia</p>
         </div>
-
-        <!-- Tabs de navegación -->
-        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-          <button class="tab-btn active px-4 py-2 rounded-lg font-semibold whitespace-nowrap" data-tab="resumen">
-            📊 Resumen
-          </button>
-          <button class="tab-btn px-4 py-2 rounded-lg font-semibold whitespace-nowrap" data-tab="pacientes">
-            👥 Pacientes
-          </button>
-          <button class="tab-btn px-4 py-2 rounded-lg font-semibold whitespace-nowrap" data-tab="configuracion">
-            ⚙️ Configuración
-          </button>
+        <div class="text-center fade-in-up delay-2">
+          <div class="stat-number mb-2">5000+</div>
+          <p class="text-gray-600 font-semibold">Pacientes atendidos</p>
         </div>
-
-        <!-- Tab: Resumen -->
-        <div id="tabResumen" class="tab-content">
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">HOY</p>
-              <p class="text-3xl font-bold" id="statHoy">0</p>
-            </div>
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">SEMANA</p>
-              <p class="text-3xl font-bold" id="statSemana">0</p>
-            </div>
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">PENDIENTES</p>
-              <p class="text-3xl font-bold text-orange-600" id="statPendientes">0</p>
-            </div>
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
-              <p class="text-3xl font-bold" id="statTotal">0</p>
-            </div>
-          </div>
-
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Próxima cita</h3>
-            <div id="proximaCitaContent">
-              <p class="text-gray-500 text-sm">No hay citas</p>
-            </div>
-            <div id="notasProximaCita" class="hidden mt-4 pt-4 border-t">
-              <h4 class="font-semibold text-sm mb-3">📝 Notas del paciente</h4>
-              <div id="listaNotasProxima" class="space-y-2 mb-3 max-h-48 overflow-y-auto">
-                <!-- Generado dinámicamente -->
-              </div>
-              <form id="formNotaProxima" class="space-y-2">
-                <textarea id="inputNotaProxima" required rows="2" placeholder="Agregar nota..."
-                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm"></textarea>
-                <button type="submit" class="btn-primary w-full text-sm py-2">Guardar nota</button>
-              </form>
-            </div>
-          </div>
-
-          <div class="card p-4">
-            <div class="flex gap-2 mb-4">
-              <input type="date" id="filtroFecha" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-sm">
-              <button id="btnLimpiarFiltro" class="btn-secondary text-sm">Todas</button>
-            </div>
-            <div id="listaCitas"></div>
-          </div>
+        <div class="text-center fade-in-up delay-3">
+          <div class="stat-number mb-2">9</div>
+          <p class="text-gray-600 font-semibold">Especialidades</p>
         </div>
+        <div class="text-center fade-in-up delay-4">
+          <div class="stat-number mb-2">98%</div>
+          <p class="text-gray-600 font-semibold">Satisfacción</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        <!-- Tab: Pacientes -->
-        <div id="tabPacientes" class="tab-content hidden">
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Buscar paciente</h3>
-            <div class="flex gap-2">
-              <input type="text" id="inputBuscarPaciente" placeholder="Buscar por nombre o teléfono..."
-                class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg">
-              <button id="btnBuscarPaciente" class="btn-primary px-6">Buscar</button>
-            </div>
+  <!-- Sobre mí -->
+  <section class="section bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        
+        <div class="order-2 lg:order-1">
+          <div class="inline-block mb-4 px-5 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-semibold fade-in-up">
+            Sobre mí
           </div>
+          <h3 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 fade-in-up delay-1">
+            Dra. Jaznelly Lesso Zamora
+          </h3>
+          <p class="text-lg text-gray-600 mb-6 leading-relaxed fade-in-up delay-2">
+            Médico oftalmólogo especializada en cirugía de retina, vítreo y segmento anterior. Certificada con experiencia en el manejo integral de enfermedades oculares complejas.
+          </p>
+          <p class="text-lg text-gray-600 mb-10 leading-relaxed fade-in-up delay-3">
+            Mi compromiso es ofrecer atención personalizada con los más altos estándares de calidad, utilizando tecnología de última generación para el diagnóstico y tratamiento de cada paciente.
+          </p>
 
-          <div id="resultadosBusqueda" class="hidden">
-            <div class="card p-4 mb-6">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="text-xl font-bold" id="nombrePaciente">-</h3>
-                  <p class="text-sm text-gray-600" id="contactoPaciente">-</p>
-                </div>
-                <button id="btnCerrarPaciente" class="text-gray-400 hover:text-gray-600">✕</button>
-              </div>
-
-              <div class="mb-4">
-                <div class="flex justify-between items-center mb-2">
-                  <p class="text-sm font-semibold text-gray-700">Historial de citas</p>
-                  <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-semibold"
-                    id="totalCitasPaciente">0 citas</span>
-                </div>
-                <div id="historialCitas" class="space-y-2 max-h-64 overflow-y-auto">
-                  <!-- Generado dinámicamente -->
-                </div>
-              </div>
-
-              <div class="border-t pt-4">
-                <h4 class="font-semibold mb-3 flex items-center gap-2">
-                  <span>📝</span> Notas médicas
-                </h4>
-                <div id="listaNotas" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
-                  <!-- Generado dinámicamente -->
-                </div>
-                <form id="formAgregarNota" class="space-y-3">
-                  <textarea id="inputNota" required rows="3" placeholder="Escribe una nota médica..."
-                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm"></textarea>
-                  <button type="submit" class="btn-primary w-full text-sm py-2">Agregar nota</button>
-                </form>
+          <div class="space-y-5">
+            <div class="flex items-start gap-4 fade-in-up delay-4">
+              <div class="info-icon">🎓</div>
+              <div>
+                <p class="font-bold text-gray-900 text-lg">Especialidad</p>
+                <p class="text-gray-600">Oftalmología - Cirugía de Retina y Vítreo</p>
               </div>
             </div>
-          </div>
-
-          <div id="sinResultados" class="hidden">
-            <div class="card p-8 text-center">
-              <p class="text-gray-500">No se encontraron pacientes</p>
+            <div class="flex items-start gap-4 fade-in-up delay-5">
+              <div class="info-icon">🏥</div>
+              <div>
+                <p class="font-bold text-gray-900 text-lg">Certificaciones</p>
+                <p class="text-gray-600">Consejo Mexicano de Oftalmología</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 fade-in-up delay-6">
+              <div class="info-icon">⭐</div>
+              <div>
+                <p class="font-bold text-gray-900 text-lg">Experiencia</p>
+                <p class="text-gray-600">Más de 15 años de práctica clínica y quirúrgica</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Tab: Configuración -->
-        <div id="tabConfiguracion" class="tab-content hidden">
-
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Desbloquear jueves</h3>
-            <p class="text-sm text-gray-600 mb-4">Los jueves están bloqueados por defecto. Puedes habilitarlos aquí:</p>
-            <form id="formDesbloquearJueves" class="space-y-3">
-              <input type="date" id="fechaDesbloquearJueves" required
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Habilitar
-                jueves</button>
-            </form>
-          </div>
-
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Bloquear día específico</h3>
-            <form id="formBloquearDia" class="space-y-3">
-              <input type="date" id="fechaBloquearDia" required
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <input type="text" id="motivoBloqueo" placeholder="Motivo (opcional)"
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Bloquear
-                día</button>
-            </form>
-          </div>
-
-          <div class="card p-4">
-            <h3 class="font-bold mb-4">Días bloqueados manualmente</h3>
-            <div id="listaDiasBloqueados"></div>
-          </div>
-
-          <div class="card p-4 mt-6">
-            <h3 class="font-bold mb-4">Jueves habilitados</h3>
-            <div id="listaJuevesHabilitados"></div>
+        <div class="order-1 lg:order-2 fade-in-up delay-2">
+          <div class="photo-frame">
+            <img 
+              src="https://serverhap.arandadelaparra.com.mx/storage/directorio/172/primary/sJcBIhVfTXo7TrANpEUfBPRlbcAAe4ZYeYIJvZY3_lg.jpg" 
+              alt="Dra. Jaznelly Lesso Zamora"
+              class="w-full h-auto object-cover"
+              style="max-height: 700px; object-position: center top;">
           </div>
         </div>
       </div>
-
-  </main>
-
-  <script>
-    // Config
-    const { createClient } = supabase;
-    const supabaseClient = createClient(
-      'https://ecqjfftvvcyqpxtdcnbb.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjcWpmZnR2dmN5cXB4dGRjbmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDA5NjQsImV4cCI6MjA4MDI3Njk2NH0.hQ94vABAfutXKRB0boBet-HcnR-VW6Lin6IRUeKEl6o'
-    );
-
-    const STRIPE_LINKS = {
-      normal: 'https://buy.stripe.com/4gM3cuh18gWY7Kr80ddAk00',
-      urgente: 'https://buy.stripe.com/aFa3cu8uC7mofcTdkxdAk02',
-      video: 'https://buy.stripe.com/eVqdR86mu8qsaWD4O1dAk01'
-    };
-
-    // Estado
-    let currentStep = 1;
-    let selectedType = null;
-    let selectedDate = null;
-    let selectedTime = null;
-    let mesActual = new Date();
-
-    // Funciones DB
-    async function guardarCita(cita) {
-      const { data, error } = await supabaseClient.from('citas').insert([cita]).select();
-      if (error) { alert('Error al guardar'); return null; }
-      return data[0];
-    }
-
-    async function obtenerCitas(fecha = null) {
-      let query = supabaseClient.from('citas').select('*').order('fecha').order('horario');
-      if (fecha) query = query.eq('fecha', fecha);
-      const { data } = await query;
-      return data || [];
-    }
-
-    async function cancelarCitaDB(id) {
-      await supabaseClient.from('citas').delete().eq('id', id);
-    }
-
-    async function bloquearDia(bloqueo) {
-      const { data, error } = await supabaseClient.from('dias_bloqueados').insert([bloqueo]).select();
-      if (error) { alert('Error o ya bloqueado'); return null; }
-      return data[0];
-    }
-
-    async function obtenerDiasBloqueados() {
-      const { data } = await supabaseClient.from('dias_bloqueados').select('*').order('fecha');
-      return data || [];
-    }
-
-    async function obtenerJuevesHabilitados() {
-      const { data } = await supabaseClient.from('jueves_habilitados').select('*').order('fecha');
-      return data || [];
-    }
-
-    async function habilitarJueves(fecha) {
-      const { data, error } = await supabaseClient.from('jueves_habilitados').insert([{ fecha }]).select();
-      if (error) { alert('Error o ya habilitado'); return null; }
-      return data[0];
-    }
-
-    async function deshabilitarJueves(id) {
-      await supabaseClient.from('jueves_habilitados').delete().eq('id', id);
-    }
-
-    async function marcarPagado(id) {
-      await supabaseClient.from('citas').update({ pagado: true }).eq('id', id);
-    }
-
-    async function buscarPaciente(termino) {
-      // Buscar en tabla pacientes
-      const { data: pacientes } = await supabaseClient
-        .from('pacientes')
-        .select('*')
-        .or(`nombre.ilike.%${termino}%,apellido_paterno.ilike.%${termino}%,apellido_materno.ilike.%${termino}%,telefono.ilike.%${termino}%`)
-        .order('created_at', { ascending: false });
-
-      // Si encontramos pacientes, obtener sus citas
-      if (pacientes && pacientes.length > 0) {
-        const telefonos = pacientes.map(p => p.telefono);
-        const { data: citas } = await supabaseClient
-          .from('citas')
-          .select('*')
-          .in('telefono', telefonos)
-          .order('fecha', { ascending: false });
-
-        // Combinar datos
-        return citas || [];
-      }
-
-      return [];
-    }
-
-    async function obtenerNotasPaciente(telefono) {
-      const { data } = await supabaseClient
-        .from('notas_medicas')
-        .select('*')
-        .eq('telefono_paciente', telefono)
-        .order('created_at', { ascending: false });
-      return data || [];
-    }
-
-    async function agregarNota(nota) {
-      const { data, error } = await supabaseClient
-        .from('notas_medicas')
-        .insert([nota])
-        .select();
-      if (error) { alert('Error al guardar nota'); return null; }
-      return data[0];
-    }
-
-    async function eliminarNota(id) {
-      await supabaseClient.from('notas_medicas').delete().eq('id', id);
-    }
-
-    // Funciones de Pacientes
-    async function buscarPacientePorTelefono(telefono) {
-      const { data } = await supabaseClient
-        .from('pacientes')
-        .select('*')
-        .eq('telefono', telefono.trim())
-        .single();
-      return data;
-    }
-
-    async function upsertPaciente(paciente) {
-      const { data, error } = await supabaseClient
-        .from('pacientes')
-        .upsert(paciente, { onConflict: 'telefono' })
-        .select()
-        .single();
-      if (error) {
-        console.error('Error al guardar paciente:', error);
-        return null;
-      }
-      return data;
-    }
-
-    async function desbloquearDia(id) {
-      await supabaseClient.from('dias_bloqueados').delete().eq('id', id);
-    }
-
-    // UI Steps
-    function showStep(step) {
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById(`paso${i}`)?.classList.add('hidden');
-        const ind = document.getElementById(`stepInd${i}`);
-        if (ind) {
-          ind.classList.remove('active', 'completed', 'inactive');
-          if (i < step) ind.classList.add('completed');
-          else if (i === step) ind.classList.add('active');
-          else ind.classList.add('inactive');
-        }
-      }
-      if (step <= 4) document.getElementById(`paso${step}`).classList.remove('hidden');
-      const progress = (step / 4) * 100;
-      document.getElementById('progressBar').style.width = `${progress}%`;
-      currentStep = step;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Paso 1: Tipo
-    document.querySelectorAll('[data-tipo]').forEach(card => {
-      card.addEventListener('click', () => {
-        document.querySelectorAll('[data-tipo]').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedType = card.dataset.tipo;
-        setTimeout(() => showStep(2), 300);
-      });
-    });
-
-    // Paso 2: Calendario
-    async function renderCalendar() {
-      const year = mesActual.getFullYear();
-      const month = mesActual.getMonth();
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-      document.getElementById('mesActual2').textContent = `${meses[month]} ${year}`;
-      document.getElementById('mesNombre').textContent = `${meses[month]} ${year}`;
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const lastDate = new Date(year, month + 1, 0).getDate();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const bloqueados = await obtenerDiasBloqueados();
-      const fechasBloqueadas = bloqueados.map(b => b.fecha);
-
-      const juevesHabilitados = await obtenerJuevesHabilitados();
-      const fechasJuevesHabilitados = juevesHabilitados.map(j => j.fecha);
-
-      const container = document.getElementById('calendarioDias');
-      container.innerHTML = '';
-
-      for (let i = 0; i < firstDay; i++) container.appendChild(document.createElement('div'));
-
-      for (let d = 1; d <= lastDate; d++) {
-        const fecha = new Date(year, month, d);
-        fecha.setHours(0, 0, 0, 0);
-        const dow = fecha.getDay();
-        const isWeekend = dow === 0 || dow === 6;
-        const isPast = fecha < today;
-        const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isBlocked = fechasBloqueadas.includes(fechaStr);
-
-        // Los jueves (dow === 4) están bloqueados por defecto, a menos que estén habilitados
-        const isThursday = dow === 4;
-        const isThursdayEnabled = fechasJuevesHabilitados.includes(fechaStr);
-        const isThursdayBlocked = isThursday && !isThursdayEnabled;
-
-        const cell = document.createElement('div');
-        cell.textContent = d;
-        cell.className = 'day-cell';
-
-        if (isPast || isWeekend) {
-          cell.classList.add('disabled');
-        } else if (isBlocked || isThursdayBlocked) {
-          cell.classList.add('blocked');
-        } else {
-          cell.addEventListener('click', () => {
-            selectedDate = fechaStr;
-            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
-            cell.classList.add('selected');
-            setTimeout(() => showStep(3), 300);
-            renderHorarios();
-          });
-        }
-
-        container.appendChild(cell);
-      }
-    }
-
-    document.getElementById('prevMes').addEventListener('click', () => {
-      mesActual.setMonth(mesActual.getMonth() - 1);
-      renderCalendar();
-    });
-
-    document.getElementById('nextMes').addEventListener('click', () => {
-      mesActual.setMonth(mesActual.getMonth() + 1);
-      renderCalendar();
-    });
-
-    // Paso 3: Horarios
-    async function renderHorarios() {
-      document.getElementById('fechaSeleccionada').textContent = selectedDate;
-      const container = document.getElementById('horariosContainer');
-      container.innerHTML = '<p class="col-span-full text-center text-gray-500">Cargando...</p>';
-
-      const citas = await obtenerCitas(selectedDate);
-      const ocupados = citas.map(c => c.horario);
-
-      let horarios = [];
-      if (selectedType === 'urgente') {
-        for (let h = 8; h <= 9.5; h += 0.5) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-        for (let h = 15; h <= 16; h += 0.5) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-      } else if (selectedType === 'video') {
-        for (let h = 10; h < 19; h += 0.25) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-      } else {
-        for (let h = 10; h < 14; h += 0.5) {
-          const hora = Math.floor(h);
-          const min = (h % 1) * 60;
-          horarios.push(`${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00`);
-        }
-      }
-
-      container.innerHTML = '';
-      horarios.forEach(h => {
-        const slot = document.createElement('div');
-        slot.textContent = h.substring(0, 5);
-        slot.className = 'time-slot';
-
-        if (ocupados.includes(h)) {
-          slot.classList.add('disabled');
-        } else {
-          slot.addEventListener('click', () => {
-            selectedTime = h;
-            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-            slot.classList.add('selected');
-            setTimeout(() => showStep(4), 300);
-          });
-        }
-
-        container.appendChild(slot);
-      });
-    }
-
-    // Paso 4: Autocompletado por teléfono
-    let pacienteActualForm = null;
-    let timeoutBusqueda = null;
-
-    document.getElementById('inputTelefono').addEventListener('input', async (e) => {
-      const telefono = e.target.value.trim();
-
-      // Limpiar timeout anterior
-      if (timeoutBusqueda) clearTimeout(timeoutBusqueda);
-
-      // Ocultar mensajes
-      document.getElementById('indicadorBusqueda').classList.add('hidden');
-      document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
-
-      // Buscar solo si tiene 10 dígitos
-      if (telefono.length === 10) {
-        document.getElementById('indicadorBusqueda').classList.remove('hidden');
-
-        timeoutBusqueda = setTimeout(async () => {
-          const paciente = await buscarPacientePorTelefono(telefono);
-
-          document.getElementById('indicadorBusqueda').classList.add('hidden');
-
-          if (paciente) {
-            // Paciente encontrado - autocompletar
-            pacienteActualForm = paciente;
-            document.getElementById('mensajePacienteEncontrado').classList.remove('hidden');
-
-            // Llenar campos
-            document.getElementById('inputNombre').value = paciente.nombre;
-            document.getElementById('inputApellidoPaterno').value = paciente.apellido_paterno;
-            document.getElementById('inputApellidoMaterno').value = paciente.apellido_materno;
-            document.getElementById('inputEmail').value = paciente.email || '';
-
-            // Hacer campos de solo lectura
-            document.getElementById('inputNombre').readOnly = true;
-            document.getElementById('inputApellidoPaterno').readOnly = true;
-            document.getElementById('inputApellidoMaterno').readOnly = true;
-
-            // Cambiar estilo a solo lectura
-            document.getElementById('campoNombre').classList.add('opacity-75');
-            document.getElementById('campoApellidoPaterno').classList.add('opacity-75');
-            document.getElementById('campoApellidoMaterno').classList.add('opacity-75');
-
-            // Focus en motivo
-            document.getElementById('inputMotivo').focus();
-          } else {
-            // Paciente nuevo - limpiar y habilitar campos
-            pacienteActualForm = null;
-            document.getElementById('inputNombre').value = '';
-            document.getElementById('inputApellidoPaterno').value = '';
-            document.getElementById('inputApellidoMaterno').value = '';
-            document.getElementById('inputEmail').value = '';
-
-            document.getElementById('inputNombre').readOnly = false;
-            document.getElementById('inputApellidoPaterno').readOnly = false;
-            document.getElementById('inputApellidoMaterno').readOnly = false;
-
-            document.getElementById('campoNombre').classList.remove('opacity-75');
-            document.getElementById('campoApellidoPaterno').classList.remove('opacity-75');
-            document.getElementById('campoApellidoMaterno').classList.remove('opacity-75');
-          }
-        }, 500);
-      }
-    });
-
-    // Paso 4: Form Submit
-    document.getElementById('formDatos').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const telefono = document.getElementById('inputTelefono').value.trim();
-      const nombre = document.getElementById('inputNombre').value.trim().toUpperCase();
-      const apellidoPaterno = document.getElementById('inputApellidoPaterno').value.trim().toUpperCase();
-      const apellidoMaterno = document.getElementById('inputApellidoMaterno').value.trim().toUpperCase();
-      const email = document.getElementById('inputEmail').value.trim() || null;
-      const motivo = document.getElementById('inputMotivo').value.trim();
-
-      // 1. Crear o actualizar paciente
-      const paciente = await upsertPaciente({
-        telefono,
-        nombre,
-        apellido_paterno: apellidoPaterno,
-        apellido_materno: apellidoMaterno,
-        email
-      });
-
-      if (!paciente) {
-        alert('Error al guardar los datos del paciente');
-        return;
-      }
-
-      // 2. Crear cita vinculada al paciente
-      const cita = {
-        paciente_id: paciente.id,
-        // Mantener compatibilidad con campos antiguos
-        nombre: `${nombre} ${apellidoPaterno} ${apellidoMaterno}`,
-        telefono,
-        email,
-        motivo,
-        fecha: selectedDate,
-        horario: selectedTime,
-        tipo: selectedType,
-        pagado: false
-      };
-
-      const saved = await guardarCita(cita);
-      if (saved) {
-        const precios = { normal: '$1,000', urgente: '$2,000', video: '$200' };
-        const tipos = { normal: 'Consulta General', urgente: 'Consulta Urgente', video: 'Videollamada' };
-
-        document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0, 5)}`;
-        document.getElementById('resumenTipo').textContent = tipos[selectedType];
-        document.getElementById('resumenPrecio').textContent = precios[selectedType];
-        document.getElementById('linkPago').href = STRIPE_LINKS[selectedType];
-
-        document.getElementById('paso4').classList.add('hidden');
-        document.getElementById('confirmacion').classList.remove('hidden');
-
-        // Reset form y variables
-        document.getElementById('formDatos').reset();
-        pacienteActualForm = null;
-        document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
-
-        // Restaurar campos editables
-        document.getElementById('inputNombre').readOnly = false;
-        document.getElementById('inputApellidoPaterno').readOnly = false;
-        document.getElementById('inputApellidoMaterno').readOnly = false;
-        document.getElementById('campoNombre').classList.remove('opacity-75');
-        document.getElementById('campoApellidoPaterno').classList.remove('opacity-75');
-        document.getElementById('campoApellidoMaterno').classList.remove('opacity-75');
-      }
-    });
-
-    // Navegación atrás
-    document.getElementById('btnBack2').addEventListener('click', () => showStep(1));
-    document.getElementById('btnBack3').addEventListener('click', () => showStep(2));
-    document.getElementById('btnBack4').addEventListener('click', () => showStep(3));
-
-    // Admin
-    document.getElementById('btnAdmin').addEventListener('click', () => {
-      document.getElementById('vistaReserva').classList.add('hidden');
-      document.getElementById('vistaAdmin').classList.remove('hidden');
-    });
-
-    document.getElementById('btnVolverLogin').addEventListener('click', () => {
-      document.getElementById('vistaAdmin').classList.add('hidden');
-      document.getElementById('vistaReserva').classList.remove('hidden');
-    });
-
-    // Tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tab = btn.dataset.tab;
-
-        // Actualizar botones
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        // Mostrar contenido
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        if (tab === 'resumen') document.getElementById('tabResumen').classList.remove('hidden');
-        if (tab === 'pacientes') document.getElementById('tabPacientes').classList.remove('hidden');
-        if (tab === 'configuracion') document.getElementById('tabConfiguracion').classList.remove('hidden');
-      });
-    });
-
-    document.getElementById('formLogin').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const user = document.getElementById('loginUser').value;
-      const pass = document.getElementById('loginPass').value;
-      if (user === 'admin' && pass === '1234') {
-        document.getElementById('adminLogin').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-        await cargarAdmin();
-      } else {
-        alert('Credenciales incorrectas');
-      }
-    });
-
-    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
-      document.getElementById('adminPanel').classList.add('hidden');
-      document.getElementById('adminLogin').classList.remove('hidden');
-      document.getElementById('vistaAdmin').classList.add('hidden');
-      document.getElementById('vistaReserva').classList.remove('hidden');
-    });
-
-    async function cargarAdmin() {
-      const citas = await obtenerCitas();
-      const hoy = new Date().toISOString().split('T')[0];
-
-      const citasHoy = citas.filter(c => c.fecha === hoy).length;
-      const inicioSemana = new Date();
-      inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
-      const finSemana = new Date(inicioSemana);
-      finSemana.setDate(finSemana.getDate() + 6);
-      const citasSemana = citas.filter(c => {
-        const f = new Date(c.fecha + 'T00:00:00');
-        return f >= inicioSemana && f <= finSemana;
-      }).length;
-      const pendientes = citas.filter(c => !c.pagado).length;
-
-      document.getElementById('statHoy').textContent = citasHoy;
-      document.getElementById('statSemana').textContent = citasSemana;
-      document.getElementById('statPendientes').textContent = pendientes;
-      document.getElementById('statTotal').textContent = citas.length;
-
-      await actualizarListaCitas();
-      await actualizarProxima();
-      await actualizarBloqueados();
-      await actualizarJuevesHabilitados();
-    }
-
-    async function actualizarListaCitas(filtro = null) {
-      const container = document.getElementById('listaCitas');
-      const citas = await obtenerCitas(filtro);
-
-      if (citas.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin citas</p>';
-        return;
-      }
-
-      const tipos = { normal: 'General', urgente: 'Urgente', video: 'Video' };
-      const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
-
-      container.innerHTML = citas.map(c => `
-        <div class="border-b last:border-0 py-3">
-          <div class="flex justify-between items-start mb-2">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <p class="font-semibold text-sm">${iconos[c.tipo]} ${c.nombre}</p>
-                ${c.pagado ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>' : '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Servicios -->
+  <section class="section bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="inline-block mb-4 px-5 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold fade-in-up">
+          Servicios
+        </div>
+        <h3 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 fade-in-up delay-1">
+          Atención oftalmológica <span class="gradient-text">integral</span>
+        </h3>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto fade-in-up delay-2">
+          Diagnóstico y tratamiento especializado con tecnología de vanguardia
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <div class="card p-8 fade-in-up delay-1">
+          <div class="service-icon">👁️</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Consulta Oftalmológica Integral</h4>
+          <p class="text-gray-600 leading-relaxed">Evaluación completa de la salud visual con tecnología de diagnóstico avanzada.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-2">
+          <div class="service-icon">👓</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Óptica</h4>
+          <p class="text-gray-600 leading-relaxed">Asesoría profesional en lentes oftálmicos y de contacto adaptados a tus necesidades.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-3">
+          <div class="service-icon">🩺</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Retinopatía Diabética</h4>
+          <p class="text-gray-600 leading-relaxed">Detección temprana y tratamiento especializado para prevenir complicaciones visuales.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-4">
+          <div class="service-icon">🔬</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Degeneración Macular</h4>
+          <p class="text-gray-600 leading-relaxed">Manejo integral con tratamientos modernos para preservar tu visión central.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-5">
+          <div class="service-icon">⚕️</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Cirugía de Retina y Vítreo</h4>
+          <p class="text-gray-600 leading-relaxed">Procedimientos quirúrgicos de alta especialidad con técnicas mínimamente invasivas.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-6">
+          <div class="service-icon">🚨</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Desprendimiento de Retina</h4>
+          <p class="text-gray-600 leading-relaxed">Atención urgente y tratamiento quirúrgico especializado.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-1">
+          <div class="service-icon">💎</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Cirugía de Catarata</h4>
+          <p class="text-gray-600 leading-relaxed">Técnica de facoemulsificación con lentes intraoculares premium.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-2">
+          <div class="service-icon">✨</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Corrección Visual con Láser</h4>
+          <p class="text-gray-600 leading-relaxed">Cirugía refractiva láser excimer para eliminar la dependencia de lentes.</p>
+        </div>
+
+        <div class="card p-8 fade-in-up delay-3">
+          <div class="service-icon">💧</div>
+          <h4 class="text-xl font-bold text-gray-900 mb-3">Tratamiento de Glaucoma</h4>
+          <p class="text-gray-600 leading-relaxed">Control de presión intraocular con tratamiento médico y quirúrgico.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- Horarios y ubicación -->
+  <section class="section bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-16 items-start">
+        
+        <div>
+          <div class="inline-block mb-4 px-5 py-2 bg-green-50 text-green-700 rounded-full text-sm font-semibold fade-in-up">
+            Horarios
+          </div>
+          <h3 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 fade-in-up delay-1">
+            Estamos para atenderte
+          </h3>
+          <p class="text-lg text-gray-600 mb-8 fade-in-up delay-2">
+            Agenda tu cita de manera rápida y sencilla a través de nuestro sistema en línea.
+          </p>
+
+          <div class="card p-8 mb-8 fade-in-up delay-3">
+            <div class="space-y-5">
+              <div class="flex justify-between items-center pb-4 border-b-2 border-gray-100">
+                <span class="font-bold text-gray-900 text-lg">Lunes</span>
+                <span class="text-gray-600 font-semibold">10:30 - 17:30</span>
               </div>
-              <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0, 5)} • ${tipos[c.tipo]}</p>
-              <p class="text-xs text-gray-400 mt-1">${c.motivo}</p>
+              <div class="flex justify-between items-center pb-4 border-b-2 border-gray-100">
+                <span class="font-bold text-gray-900 text-lg">Martes</span>
+                <span class="text-gray-600 font-semibold">10:30 - 17:30</span>
+              </div>
+              <div class="flex justify-between items-center pb-4 border-b-2 border-gray-100">
+                <span class="font-bold text-gray-900 text-lg">Miércoles</span>
+                <span class="text-gray-600 font-semibold">10:30 - 17:30</span>
+              </div>
+              <div class="flex justify-between items-center pb-4 border-b-2 border-gray-100">
+                <span class="font-bold text-gray-900 text-lg">Jueves</span>
+                <span class="text-gray-600 font-semibold">10:30 - 17:30</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-gray-900 text-lg">Viernes</span>
+                <span class="text-gray-600 font-semibold">10:30 - 17:30</span>
+              </div>
             </div>
           </div>
-          <div class="flex gap-2">
-            ${!c.pagado ? `<button onclick="marcarComoPagado(${c.id})" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-semibold">Marcar pagado</button>` : ''}
-            <button onclick="cancelarCita(${c.id})" class="text-xs text-red-600 font-semibold">Cancelar</button>
+
+          <div class="flex flex-col sm:flex-row gap-4 fade-in-up delay-4">
+            <a href="agendar.html" class="btn-primary text-center flex-1">
+              Agendar ahora
+            </a>
+            <a href="tel:4771011668" class="btn-secondary text-center flex-1">
+              <span>Llamar</span>
+            </a>
           </div>
         </div>
-      `).join('');
-    }
 
-    async function actualizarProxima() {
-      const citas = await obtenerCitas();
-      const ahora = new Date();
-      const proxima = citas.find(c => new Date(`${c.fecha}T${c.horario}`) >= ahora);
-
-      const container = document.getElementById('proximaCitaContent');
-      const notasSection = document.getElementById('notasProximaCita');
-
-      if (proxima) {
-        const tipos = { normal: 'General', urgente: 'Urgente', video: 'Video' };
-        const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
-        container.innerHTML = `
-          <p class="font-bold">${iconos[proxima.tipo]} ${proxima.nombre}</p>
-          <p class="text-sm text-gray-600">${proxima.fecha} • ${proxima.horario.substring(0, 5)}</p>
-          <p class="text-xs text-gray-500 mt-1">${proxima.motivo}</p>
-          <p class="text-xs text-gray-400 mt-2">📞 ${proxima.telefono}</p>
-        `;
-
-        // Mostrar sección de notas y cargarlas
-        notasSection.classList.remove('hidden');
-        window.pacienteProximo = proxima;
-        await cargarNotasProximaCita(proxima.telefono);
-      } else {
-        container.innerHTML = '<p class="text-gray-500 text-sm">No hay próximas</p>';
-        notasSection.classList.add('hidden');
-        window.pacienteProximo = null;
-      }
-    }
-
-    window.cancelarCita = async function (id) {
-      if (confirm('¿Cancelar esta cita?')) {
-        await cancelarCitaDB(id);
-        await cargarAdmin();
-      }
-    };
-
-    window.marcarComoPagado = async function (id) {
-      if (confirm('¿Marcar como pagado?')) {
-        await marcarPagado(id);
-        await cargarAdmin();
-      }
-    };
-
-    document.getElementById('filtroFecha').addEventListener('change', (e) => {
-      actualizarListaCitas(e.target.value || null);
-    });
-
-    document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
-      document.getElementById('filtroFecha').value = '';
-      actualizarListaCitas();
-    });
-
-    document.getElementById('formDesbloquearJueves').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fecha = document.getElementById('fechaDesbloquearJueves').value;
-      const fechaObj = new Date(fecha + 'T00:00:00');
-
-      if (fechaObj.getDay() !== 4) {
-        alert('⚠️ La fecha seleccionada no es jueves');
-        return;
-      }
-
-      const result = await habilitarJueves(fecha);
-      if (result) {
-        await actualizarJuevesHabilitados();
-        await renderCalendar();
-        e.target.reset();
-        alert('✅ Jueves habilitado');
-      }
-    });
-
-    document.getElementById('formBloquearDia').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const bloqueo = {
-        fecha: document.getElementById('fechaBloquearDia').value,
-        motivo: document.getElementById('motivoBloqueo').value || 'Sin motivo'
-      };
-      const result = await bloquearDia(bloqueo);
-      if (result) {
-        await actualizarBloqueados();
-        await renderCalendar();
-        e.target.reset();
-        alert('✅ Día bloqueado');
-      }
-    });
-
-    async function actualizarBloqueados() {
-      const container = document.getElementById('listaDiasBloqueados');
-      const bloqueados = await obtenerDiasBloqueados();
-
-      if (bloqueados.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin bloqueos</p>';
-        return;
-      }
-
-      container.innerHTML = bloqueados.map(b => `
-        <div class="border-b last:border-0 py-3 flex justify-between items-center">
-          <div>
-            <p class="font-semibold text-sm">📅 ${b.fecha}</p>
-            <p class="text-xs text-gray-500">${b.motivo}</p>
-          </div>
-          <button onclick="eliminarBloqueo(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button>
-        </div>
-      `).join('');
-    }
-
-    async function actualizarJuevesHabilitados() {
-      const container = document.getElementById('listaJuevesHabilitados');
-      const jueves = await obtenerJuevesHabilitados();
-
-      if (jueves.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Ningún jueves habilitado</p>';
-        return;
-      }
-
-      container.innerHTML = jueves.map(j => `
-        <div class="border-b last:border-0 py-3 flex justify-between items-center">
-          <div>
-            <p class="font-semibold text-sm">📅 ${j.fecha}</p>
-            <p class="text-xs text-green-600">Jueves habilitado</p>
-          </div>
-          <button onclick="eliminarJuevesHabilitado(${j.id})" class="text-xs text-red-600 font-semibold">Deshabilitar</button>
-        </div>
-      `).join('');
-    }
-
-    window.eliminarBloqueo = async function (id) {
-      if (confirm('¿Desbloquear?')) {
-        await desbloquearDia(id);
-        await actualizarBloqueados();
-        await renderCalendar();
-      }
-    };
-
-    window.eliminarJuevesHabilitado = async function (id) {
-      if (confirm('¿Deshabilitar este jueves?')) {
-        await deshabilitarJueves(id);
-        await actualizarJuevesHabilitados();
-        await renderCalendar();
-      }
-    };
-
-    // Búsqueda de pacientes
-    let pacienteActual = null;
-
-    document.getElementById('btnBuscarPaciente').addEventListener('click', async () => {
-      const termino = document.getElementById('inputBuscarPaciente').value.trim();
-      if (!termino) {
-        alert('Escribe un nombre o teléfono');
-        return;
-      }
-
-      const resultados = await buscarPaciente(termino);
-
-      if (resultados.length === 0) {
-        document.getElementById('resultadosBusqueda').classList.add('hidden');
-        document.getElementById('sinResultados').classList.remove('hidden');
-        return;
-      }
-
-      // Tomar el primer resultado único por teléfono
-      const paciente = resultados[0];
-      pacienteActual = paciente;
-
-      document.getElementById('sinResultados').classList.add('hidden');
-      document.getElementById('resultadosBusqueda').classList.remove('hidden');
-
-      document.getElementById('nombrePaciente').textContent = paciente.nombre;
-      document.getElementById('contactoPaciente').textContent = `📞 ${paciente.telefono}${paciente.email ? ' • 📧 ' + paciente.email : ''}`;
-
-      // Historial
-      const historial = resultados.filter(c => c.telefono === paciente.telefono);
-      document.getElementById('totalCitasPaciente').textContent = `${historial.length} cita${historial.length !== 1 ? 's' : ''}`;
-
-      const tipos = { normal: 'General', urgente: 'Urgente', video: 'Video' };
-      const iconos = { normal: '🏥', urgente: '🚨', video: '💻' };
-
-      document.getElementById('historialCitas').innerHTML = historial.map(c => `
-        <div class="p-3 bg-gray-50 rounded-lg">
-          <div class="flex justify-between items-start mb-1">
-            <p class="font-semibold text-sm">${iconos[c.tipo]} ${tipos[c.tipo]}</p>
-            ${c.pagado ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>' : '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
-          </div>
-          <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0, 5)}</p>
-          <p class="text-xs text-gray-600 mt-1">${c.motivo}</p>
-        </div>
-      `).join('');
-
-      // Cargar notas
-      await cargarNotasPaciente(paciente.telefono);
-    });
-
-    document.getElementById('btnCerrarPaciente').addEventListener('click', () => {
-      document.getElementById('resultadosBusqueda').classList.add('hidden');
-      document.getElementById('inputBuscarPaciente').value = '';
-      pacienteActual = null;
-    });
-
-    async function cargarNotasPaciente(telefono) {
-      const notas = await obtenerNotasPaciente(telefono);
-      const container = document.getElementById('listaNotas');
-
-      if (notas.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin notas médicas</p>';
-        return;
-      }
-
-      container.innerHTML = notas.map(n => {
-        const fecha = new Date(n.created_at);
-        const fechaStr = fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
-        const horaStr = fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-
-        return `
-          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div class="flex justify-between items-start mb-2">
-              <p class="text-xs text-gray-500">${fechaStr} • ${horaStr}</p>
-              <button onclick="eliminarNotaMedica(${n.id})" class="text-xs text-red-600 font-semibold">Eliminar</button>
+        <div class="fade-in-up delay-2">
+          <div class="card p-6 mb-6">
+            <div class="flex items-start gap-4 mb-6">
+              <div class="info-icon">📍</div>
+              <div>
+                <p class="font-bold text-gray-900 text-lg mb-3">Ubicación</p>
+                <p class="text-gray-600 leading-relaxed text-lg">
+                  Hospital Aranda de la Parra<br>
+                  Calle M. Hidalgo 329, Centro<br>
+                  37000 León, Guanajuato<br>
+                  <strong class="text-blue-600">Consultorio 303 | 3° Piso, Torre B</strong>
+                </p>
+              </div>
             </div>
-            <p class="text-sm text-gray-800">${n.nota}</p>
           </div>
-        `;
-      }).join('');
-    }
 
-    document.getElementById('formAgregarNota').addEventListener('submit', async (e) => {
-      e.preventDefault();
+          <div class="map-container">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3721.539922832266!2d-101.68439032411954!3d21.120880583458704!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842bbf246ad5b5a1%3A0x35f36b68fa97ef0!2sHospital%20Aranda%20de%20la%20Parra!5e0!3m2!1ses!2smx!4v1737026000000!5m2!1ses!2smx"
+              width="100%" 
+              height="100%" 
+              style="border:0;" 
+              allowfullscreen="" 
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+          </div>
+        </div>
 
-      if (!pacienteActual) return;
+      </div>
+    </div>
+  </section>
 
-      const nota = {
-        telefono_paciente: pacienteActual.telefono,
-        nombre_paciente: pacienteActual.nombre,
-        nota: document.getElementById('inputNota').value
-      };
+  <!-- CTA Final -->
+  <section class="section bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+    <div class="decorative-circle" style="width: 400px; height: 400px; top: -100px; right: -100px; background: rgba(255, 255, 255, 0.1);"></div>
+    <div class="decorative-circle" style="width: 300px; height: 300px; bottom: -50px; left: -50px; background: rgba(255, 255, 255, 0.1); animation-delay: -2s;"></div>
+    
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <div class="fade-in-up">
+        <div class="inline-block mb-6 px-5 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
+          Comienza hoy
+        </div>
+      </div>
+      <h3 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 fade-in-up delay-1">
+        ¿Listo para cuidar tu <br class="hidden sm:block">salud visual?
+      </h3>
+      <p class="text-xl md:text-2xl mb-10 opacity-90 max-w-2xl mx-auto fade-in-up delay-2">
+        Agenda tu cita en línea de manera rápida y segura
+      </p>
+      <div class="flex flex-col sm:flex-row gap-5 justify-center fade-in-up delay-3">
+        <a href="agendar.html" class="bg-white text-blue-600 font-bold px-10 py-5 rounded-2xl hover:bg-blue-50 transition-all text-lg shadow-2xl hover:shadow-3xl hover:scale-105">
+          Agendar cita ahora
+        </a>
+        <a href="consultar.html" class="bg-blue-500/30 backdrop-blur-sm text-white font-bold px-10 py-5 rounded-2xl hover:bg-blue-400/40 transition-all border-2 border-white/30 text-lg">
+          Consultar mi cita
+        </a>
+      </div>
+    </div>
+  </section>
 
-      const resultado = await agregarNota(nota);
-      if (resultado) {
-        await cargarNotasPaciente(pacienteActual.telefono);
-        document.getElementById('inputNota').value = '';
-      }
-    });
-
-    // Funciones para notas de próxima cita
-    async function cargarNotasProximaCita(telefono) {
-      const notas = await obtenerNotasPaciente(telefono);
-      const container = document.getElementById('listaNotasProxima');
-
-      if (notas.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-2">Sin notas médicas</p>';
-        return;
-      }
-
-      container.innerHTML = notas.map(n => {
-        const fecha = new Date(n.created_at);
-        const fechaStr = fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
-        const horaStr = fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-
-        return `
-          <div class="p-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <div class="flex justify-between items-start mb-1">
-              <p class="text-xs text-gray-500">${fechaStr} • ${horaStr}</p>
-              <button onclick="eliminarNotaMedica(${n.id}, true)" class="text-xs text-red-600 font-semibold">Eliminar</button>
+  <!-- Footer -->
+  <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-3 gap-12 mb-12">
+        
+        <div>
+          <h4 class="text-2xl font-bold mb-4">Dra. Jaznelly Lesso Zamora</h4>
+          <p class="text-gray-400 leading-relaxed mb-6">
+            Oftalmología especializada con tecnología de vanguardia para el cuidado integral de tu salud visual.
+          </p>
+          <div class="flex gap-4">
+            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-all cursor-pointer text-white font-bold">
+              f
             </div>
-            <p class="text-sm text-gray-800">${n.nota}</p>
+            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-all cursor-pointer">
+              IG
+            </div>
           </div>
-        `;
-      }).join('');
-    }
+        </div>
 
-    document.getElementById('formNotaProxima').addEventListener('submit', async (e) => {
-      e.preventDefault();
+        <div>
+          <h4 class="text-xl font-bold mb-6">Contacto</h4>
+          <div class="space-y-4 text-gray-400">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400">📞</div>
+              <span>477 101 1668</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400">📍</div>
+              <div>
+                <p>Hospital Aranda de la Parra</p>
+                <p class="text-sm">Consultorio 303, Torre B</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center text-blue-400">📧</div>
+              <span>contacto@dralesso.com</span>
+            </div>
+          </div>
+        </div>
 
-      if (!window.pacienteProximo) return;
+        <div>
+          <h4 class="text-xl font-bold mb-6">Horario de atención</h4>
+          <div class="text-gray-400 space-y-2">
+            <p class="mb-3">Lunes a Viernes</p>
+            <p class="text-2xl font-bold text-white">10:30 - 17:30</p>
+            <div class="mt-6 pt-6 border-t border-gray-700">
+              <a href="agendar.html" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-500 transition-all">
+                Agendar cita
+              </a>
+            </div>
+          </div>
+        </div>
 
-      const nota = {
-        telefono_paciente: window.pacienteProximo.telefono,
-        nombre_paciente: window.pacienteProximo.nombre,
-        nota: document.getElementById('inputNotaProxima').value
-      };
+      </div>
 
-      const resultado = await agregarNota(nota);
-      if (resultado) {
-        await cargarNotasProximaCita(window.pacienteProximo.telefono);
-        document.getElementById('inputNotaProxima').value = '';
-      }
-    });
+      <div class="border-t border-gray-800 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p class="text-gray-400 text-sm">
+            &copy; 2025 Dra. Jaznelly Lesso Zamora. Todos los derechos reservados.
+          </p>
+          <div class="flex gap-6 text-sm text-gray-400">
+            <a href="#" class="hover:text-white transition-all">Aviso de Privacidad</a>
+            <a href="#" class="hover:text-white transition-all">Términos y Condiciones</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
 
-    window.eliminarNotaMedica = async function (id, esProxima = false) {
-      if (confirm('¿Eliminar esta nota?')) {
-        await eliminarNota(id);
-
-        if (esProxima && window.pacienteProximo) {
-          await cargarNotasProximaCita(window.pacienteProximo.telefono);
-        } else if (pacienteActual) {
-          await cargarNotasPaciente(pacienteActual.telefono);
-        }
-      }
-    };
-
-    // Init
-    window.addEventListener('load', () => {
-      renderCalendar();
-    });
-  </script>
 </body>
 </html>
