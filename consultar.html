@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultar Cita - Dra. Jaznelly Lesso Zamora</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #f8fafc;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #475569;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
+
+    nav {
+      backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .folio-display {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 2px solid #3b82f6;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .folio-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e40af;
+      font-family: 'DM Sans', monospace;
+      letter-spacing: 1px;
+    }
+
+    .info-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold text-gray-900">Dra. Jaznelly Lesso Zamora</h1>
+        <p class="text-xs text-gray-500">Oftalmología</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="index.html" class="text-sm text-gray-600 font-semibold hover:text-gray-900">Inicio</a>
+        <a href="agendar.html" class="text-sm text-blue-600 font-semibold hover:text-blue-700">Agendar</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
+    
+    <!-- Formulario de búsqueda -->
+    <div id="busquedaCita" class="card p-6 mb-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Consultar mi cita</h2>
+      <p class="text-gray-600 mb-6">Busca tu cita con tu teléfono o folio de confirmación</p>
+      
+      <form id="formBuscarCita" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono (10 dígitos)</label>
+          <input 
+            type="tel" 
+            id="inputTelefonoBuscar" 
+            maxlength="10" 
+            pattern="[0-9]{10}"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+            placeholder="4491234567">
+        </div>
+
+        <div class="text-center text-sm text-gray-500 font-semibold">O</div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Folio de confirmación</label>
+          <input 
+            type="text" 
+            id="inputFolio"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg font-mono"
+            placeholder="250117-143025456">
+        </div>
+
+        <button type="submit" class="btn-primary w-full">
+          Buscar mi cita 🔍
+        </button>
+      </form>
+    </div>
+
+    <!-- Resultados -->
+    <div id="resultadoCita" class="hidden">
+      
+      <!-- Sin citas -->
+      <div id="sinCitas" class="hidden card p-8 text-center">
+        <div class="text-6xl mb-4">😔</div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">No encontramos tu cita</h3>
+        <p class="text-gray-600 mb-6">Verifica tus datos o contacta al consultorio</p>
+        <button onclick="volverBusqueda()" class="btn-primary">Intentar de nuevo</button>
+      </div>
+
+      <!-- Cita encontrada -->
+      <div id="detalleCita" class="hidden">
+        
+        <!-- Estado de pago -->
+        <div id="alertaPago" class="card p-4 mb-6 border-2 border-orange-300 bg-orange-50">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">⚠️</span>
+            <div class="flex-1">
+              <h3 class="font-bold text-orange-800 mb-1">Pago pendiente</h3>
+              <p class="text-sm text-orange-700 mb-3">Completa tu pago en las próximas 3 horas para confirmar tu cita</p>
+              <a href="#" id="linkPagoDetalle" target="_blank" class="inline-block bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold text-sm hover:bg-orange-700">
+                Pagar ahora 💳
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div id="alertaPagado" class="hidden card p-4 mb-6 border-2 border-green-300 bg-green-50">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">✅</span>
+            <div>
+              <h3 class="font-bold text-green-800 mb-1">Pago confirmado</h3>
+              <p class="text-sm text-green-700">Tu cita está confirmada. Te esperamos en la fecha indicada.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOLIO -->
+        <div class="folio-display mb-6">
+          <p class="text-xs font-semibold text-blue-900 mb-1">FOLIO</p>
+          <div class="folio-number" id="folioDetalle">-</div>
+        </div>
+
+        <!-- Detalles de la cita -->
+        <div class="card p-6 mb-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-6">Detalles de tu cita</h3>
+          
+          <div class="space-y-4">
+            <div class="flex items-start gap-3 pb-4 border-b">
+              <div class="info-icon">👤</div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1">PACIENTE</p>
+                <p class="font-semibold text-gray-900" id="nombrePacienteDetalle">-</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 pb-4 border-b">
+              <div class="info-icon">📅</div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1">FECHA Y HORA</p>
+                <p class="font-semibold text-gray-900" id="fechaHoraDetalle">-</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 pb-4 border-b">
+              <div class="info-icon" id="iconoTipoDetalle">🏥</div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1">TIPO DE CONSULTA</p>
+                <p class="font-semibold text-gray-900" id="tipoConsultaDetalle">-</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 pb-4 border-b">
+              <div class="info-icon">💰</div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1">COSTO</p>
+                <p class="text-2xl font-bold text-blue-600" id="costoDetalle">-</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 pb-4 border-b">
+              <div class="info-icon">📝</div>
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 mb-1">MOTIVO</p>
+                <p class="text-sm text-gray-700" id="motivoDetalle">-</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="info-icon">📞</div>
+              <div>
+                <p class="text-xs text-gray-500 mb-1">CONTACTO</p>
+                <p class="text-sm text-gray-700" id="contactoDetalle">-</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="card p-4 mb-6 bg-blue-50 border border-blue-200">
+          <h4 class="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <span>📍</span> Ubicación del consultorio
+          </h4>
+          <p class="text-sm text-blue-800 mb-1"><strong>Hospital Aranda de la Parra</strong></p>
+          <p class="text-sm text-blue-800 mb-1">Calle M. Hidalgo 329, Centro</p>
+          <p class="text-sm text-blue-800 mb-3">37000 León, Guanajuato</p>
+          <p class="text-sm text-blue-800 mb-3"><strong>Consultorio 303 | 3° Piso, Torre B</strong></p>
+          <p class="text-xs text-blue-700">
+            💡 <strong>Importante:</strong> Llega 10 minutos antes de tu cita
+          </p>
+        </div>
+
+        <!-- Términos y condiciones -->
+        <div class="card p-4 mb-6 bg-amber-50 border border-amber-200">
+          <h4 class="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+            <span>⚠️</span> Política de cancelación y términos
+          </h4>
+          <ul class="text-xs text-amber-800 space-y-2">
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>Las cancelaciones deben realizarse con <strong>al menos 24 horas de anticipación</strong>.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>La cita está <strong>sujeta a confirmación de pago</strong> en las próximas 3 horas.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>Cancelaciones con menos de 24 horas o <strong>inasistencias sin previo aviso perderán el pago</strong> y no podrán reagendar.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>Debido a la alta demanda, <strong>las citas son limitadas</strong> y tienen semanas de espera. Te pedimos ser puntual y responsable.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>Si llegas con <strong>más de 15 minutos de retraso</strong>, tu cita podría ser cancelada sin reembolso.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>En caso de reagendar, se aplicará un <strong>cargo adicional del 20%</strong> del costo de la consulta.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>No se permiten acompañantes en el consultorio, excepto en casos de menores de edad o personas con discapacidad.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>Por favor, <strong>trae tus estudios previos</strong> (si los tienes) y una lista de medicamentos que tomas actualmente.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Acciones -->
+        <div class="space-y-3">
+          <button onclick="compartirCita()" class="btn-secondary w-full flex items-center justify-center gap-2">
+            <span>📤</span> Compartir por WhatsApp
+          </button>
+          
+          <button onclick="mostrarCancelar()" id="btnCancelar" class="btn-danger w-full">
+            Cancelar cita
+          </button>
+
+          <button onclick="volverBusqueda()" class="btn-secondary w-full">
+            Buscar otra cita
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de cancelación -->
+    <div id="modalCancelar" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="card p-6 max-w-md w-full">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">¿Cancelar cita?</h3>
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-sm text-red-800 mb-2"><strong>⚠️ Importante:</strong></p>
+          <ul class="text-xs text-red-700 space-y-1">
+            <li>• Si cancelas con menos de 24 horas, <strong>perderás el pago</strong>.</li>
+            <li>• Las citas tienen semanas de espera debido a la alta demanda.</li>
+            <li>• Esta acción <strong>no se puede deshacer</strong>.</li>
+          </ul>
+        </div>
+        <p class="text-gray-600 mb-6">¿Estás seguro de que deseas cancelar?</p>
+        <div class="flex gap-3">
+          <button onclick="cerrarModalCancelar()" class="flex-1 px-6 py-3 border-2 border-gray-200 rounded-lg font-semibold text-gray-700">
+            No, mantener
+          </button>
+          <button onclick="confirmarCancelacion()" class="flex-1 btn-danger">
+            Sí, cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const { createClient } = supabase;
+    const _sb = {
+      u: atob('aHR0cHM6Ly9lY3FqZmZ0dnZjeXFweHRkY25iYi5zdXBhYmFzZS5jbw=='),
+      k: atob('ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW1WamNXcG1ablIyZG1ONWNYQjRkR1JqYm1KaUlpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzTmpRM01EQTVOalFzSW1WNGNDSTZNVEE0TURJM05qazJOSDAuaFE5NHZBQkFmdXRYS1JCMGJvQmV0LUhjblItVlc2TGluNklSVWVLRWw2bw==')
+    };
+    const supabaseClient = createClient(_sb.u, _sb.k);
+
+    const STRIPE_LINKS = {
+      normal: 'https://buy.stripe.com/4gM3cuh18gWY7Kr80ddAk00',
+      urgente: 'https://buy.stripe.com/aFa3cu8uC7mofcTdkxdAk02',
+      video: 'https://buy.stripe.com/eVqdR86mu8qsaWD4O1dAk01'
+    };
+
+    let citaActual = null;
+
+    // Buscar cita
+    document.getElementById('formBuscarCita').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const telefono = document.getElementById('inputTelefonoBuscar').value.trim();
+      const folio = document.getElementById('inputFolio').value.trim();
+
+      let cita = null;
+
+      if (folio) {
+        // Buscar por folio
+        const { data } = await supabaseClient
+          .from('citas')
+          .select('*')
+          .eq('folio', folio)
+          .single();
+        cita = data;
+      } else if (telefono && telefono.length === 10) {
+        // Buscar por teléfono - obtener la más próxima
+        const { data } = await supabaseClient
+          .from('citas')
+          .select('*')
+          .eq('telefono', telefono)
+          .gte('fecha', new Date().toISOString().split('T')[0])
+          .order('fecha')
+          .order('horario')
+          .limit(1);
+        cita = data?.[0];
+      }
+
+      if (cita) {
+        mostrarDetalleCita(cita);
+      } else {
+        mostrarSinCitas();
+      }
+    });
+
+    function mostrarDetalleCita(cita) {
+      citaActual = cita;
+
+      const tipos = { 
+        normal: 'Consulta General', 
+        urgente: 'Consulta Urgente', 
+        video: 'Videollamada' 
+      };
+      
+      const precios = { 
+        normal: '$1,000', 
+        urgente: '$2,000', 
+        video: '$200' 
+      };
+
+      const iconos = { 
+        normal: '🏥', 
+        urgente: '🚨', 
+        video: '💻' 
+      };
+
+      // Ocultar búsqueda, mostrar resultado
+      document.getElementById('busquedaCita').classList.add('hidden');
+      document.getElementById('resultadoCita').classList.remove('hidden');
+      document.getElementById('detalleCita').classList.remove('hidden');
+      document.getElementById('sinCitas').classList.add('hidden');
+
+      // Estado de pago
+      if (cita.pagado) {
+        document.getElementById('alertaPago').classList.add('hidden');
+        document.getElementById('alertaPagado').classList.remove('hidden');
+      } else {
+        document.getElementById('alertaPago').classList.remove('hidden');
+        document.getElementById('alertaPagado').classList.add('hidden');
+        document.getElementById('linkPagoDetalle').href = STRIPE_LINKS[cita.tipo];
+      }
+
+      // Verificar si puede cancelar (24 horas antes)
+      const fechaCita = new Date(`${cita.fecha}T${cita.horario}`);
+      const ahora = new Date();
+      const horasRestantes = (fechaCita - ahora) / (1000 * 60 * 60);
+      
+      const btnCancelar = document.getElementById('btnCancelar');
+      if (horasRestantes < 24) {
+        btnCancelar.disabled = true;
+        btnCancelar.classList.add('opacity-50', 'cursor-not-allowed');
+        btnCancelar.innerHTML = 'No se puede cancelar (menos de 24h)';
+      } else {
+        btnCancelar.disabled = false;
+        btnCancelar.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnCancelar.innerHTML = 'Cancelar cita';
+      }
+
+      // Llenar detalles
+      document.getElementById('folioDetalle').textContent = cita.folio || 'N/A';
+      document.getElementById('nombrePacienteDetalle').textContent = cita.nombre;
+      document.getElementById('fechaHoraDetalle').textContent = 
+        `${formatearFecha(cita.fecha)} • ${cita.horario.substring(0, 5)}`;
+      document.getElementById('tipoConsultaDetalle').textContent = tipos[cita.tipo];
+      document.getElementById('iconoTipoDetalle').textContent = iconos[cita.tipo];
+      document.getElementById('costoDetalle').textContent = precios[cita.tipo];
+      document.getElementById('motivoDetalle').textContent = cita.motivo;
+      document.getElementById('contactoDetalle').textContent = 
+        `${cita.telefono}${cita.email ? ' • ' + cita.email : ''}`;
+    }
+
+    function mostrarSinCitas() {
+      document.getElementById('busquedaCita').classList.add('hidden');
+      document.getElementById('resultadoCita').classList.remove('hidden');
+      document.getElementById('sinCitas').classList.remove('hidden');
+      document.getElementById('detalleCita').classList.add('hidden');
+    }
+
+    function volverBusqueda() {
+      document.getElementById('busquedaCita').classList.remove('hidden');
+      document.getElementById('resultadoCita').classList.add('hidden');
+      document.getElementById('formBuscarCita').reset();
+      citaActual = null;
+    }
+
+    function formatearFecha(fechaISO) {
+      const fecha = new Date(fechaISO + 'T00:00:00');
+      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      
+      return `${dias[fecha.getDay()]} ${fecha.getDate()} de ${meses[fecha.getMonth()]} ${fecha.getFullYear()}`;
+    }
+
+    function compartirCita() {
+      if (!citaActual) return;
+
+      const tipos = { 
+        normal: 'Consulta General', 
+        urgente: 'Consulta Urgente', 
+        video: 'Videollamada' 
+      };
+
+      const mensaje = `
+🏥 *Mi cita con Dra. Jaznelly Lesso Zamora*
+
+📅 Fecha: ${formatearFecha(citaActual.fecha)}
+🕐 Hora: ${citaActual.horario.substring(0, 5)}
+💼 Tipo: ${tipos[citaActual.tipo]}
+🔢 Folio: ${citaActual.folio}
+
+📍 Hospital Aranda de la Parra
+Consultorio 303, Torre B
+León, Guanajuato
+
+⚠️ Recuerda llegar 10 minutos antes
+      `.trim();
+
+      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+    }
+
+    function mostrarCancelar() {
+      if (!citaActual) return;
+      
+      const fechaCita = new Date(`${citaActual.fecha}T${citaActual.horario}`);
+      const ahora = new Date();
+      const horasRestantes = (fechaCita - ahora) / (1000 * 60 * 60);
+      
+      if (horasRestantes < 24) {
+        alert('⚠️ No puedes cancelar tu cita con menos de 24 horas de anticipación. Si no puedes asistir, perderás el pago realizado.');
+        return;
+      }
+      
+      document.getElementById('modalCancelar').classList.remove('hidden');
+    }
+
+    function cerrarModalCancelar() {
+      document.getElementById('modalCancelar').classList.add('hidden');
+    }
+
+    async function confirmarCancelacion() {
+      if (!citaActual) return;
+
+      const { error } = await supabaseClient
+        .from('citas')
+        .delete()
+        .eq('id', citaActual.id);
+
+      if (!error) {
+        alert('✅ Tu cita ha sido cancelada exitosamente');
+        volverBusqueda();
+        cerrarModalCancelar();
+      } else {
+        alert('❌ Error al cancelar. Por favor contacta al consultorio: 477 101 1668');
+      }
+    }
+  </script>
+</body>
+</html>
