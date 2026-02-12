@@ -142,6 +142,23 @@
       font-size: 10px;
     }
 
+    .day-cell.availability-full {
+      background: white;
+      border: 2px solid #e2e8f0;
+    }
+
+    .day-cell.availability-low {
+      background: #fcd34d;
+      border: 2px solid #f59e0b;
+      color: #92400e;
+    }
+
+    .day-cell.availability-none {
+      background: #fca5a5;
+      border: 2px solid #dc2626;
+      color: #7f1d1d;
+    }
+
     .time-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -367,6 +384,51 @@
           <div class="calendar-mini" id="calendarioDias">
             <!-- Generado dinámicamente -->
           </div>
+
+          <!-- Banner de disponibilidad mejorado -->
+          <div class="mt-6 pt-6 border-t border-gray-200">
+            <p class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+              
+              Disponibilidad de horarios
+            </p>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <div class="w-8 h-8 rounded-lg border-2 border-emerald-400 bg-white flex items-center justify-center">
+                  <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-emerald-900">Disponible</p>
+                  <p class="text-xs text-emerald-700">3 o más horarios</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <div class="w-8 h-8 rounded-lg border-2 border-amber-400 bg-yellow-300 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-amber-900">Poca disponibilidad</p>
+                  <p class="text-xs text-amber-700">1 a 2 horarios</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                <div class="w-8 h-8 rounded-lg border-2 border-red-400 bg-red-300 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-red-900">Lleno</p>
+                  <p class="text-xs text-red-700">Sin horarios disponibles</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -587,9 +649,9 @@
         <div class="card p-6 max-w-sm mx-auto mt-12">
           <h2 class="text-2xl font-bold text-center mb-6">Admin</h2>
           <form id="formLogin" class="space-y-4">
-            <input type="text" id="loginUser" value="admin" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
+            <input type="text" id="loginUser" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
               placeholder="Usuario">
-            <input type="password" id="loginPass" value="1234"
+            <input type="password" id="loginPass"
               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="Contraseña">
             <button type="submit" class="btn-primary w-full">Entrar</button>
             <button type="button" id="btnVolverLogin" class="btn-secondary w-full">Cancelar</button>
@@ -943,6 +1005,30 @@
     // ============================================
     // PASO 2: CALENDARIO
     // ============================================
+    async function getAvailabilityForDate(fechaStr) {
+      const dateObj = new Date(fechaStr + 'T00:00:00');
+      const diaSemana = dateObj.getDay();
+
+      let horariosDisponibles = [];
+
+      // Lunes (1), Miércoles (3), Jueves (4), Viernes (5)
+      if (diaSemana === 1 || diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
+        horariosDisponibles = ['11:00:00', '11:40:00', '12:20:00', '13:00:00', '13:40:00', '10:00:00', '14:20:00'];
+      }
+      // Martes (2)
+      else if (diaSemana === 2) {
+        horariosDisponibles = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00', '16:00:00', '20:20:00'];
+      }
+
+      if (horariosDisponibles.length === 0) return 0;
+
+      const citas = await obtenerCitas(fechaStr);
+      const ocupados = citas.map(c => c.horario);
+      const libres = horariosDisponibles.filter(h => !ocupados.includes(h)).length;
+
+      return libres;
+    }
+
     async function renderCalendar() {
       const year = mesActual.getFullYear();
       const month = mesActual.getMonth();
@@ -989,6 +1075,17 @@
         } else if (isBlocked || isThursdayBlocked) {
           cell.classList.add('blocked');
         } else {
+          // Calcular disponibilidad
+          const libres = await getAvailabilityForDate(fechaStr);
+          
+          if (libres === 0) {
+            cell.classList.add('availability-none');
+          } else if (libres <= 2) {
+            cell.classList.add('availability-low');
+          } else {
+            cell.classList.add('availability-full');
+          }
+
           cell.addEventListener('click', () => {
             selectedDate = fechaStr;
             document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
@@ -1283,17 +1380,57 @@
       document.getElementById('vistaReserva').classList.remove('hidden');
     });
 
+    async function validarAdminCredenciales(usuario, contrasena) {
+      try {
+        // Llamamos a la función RPC en Postgres que verifica el hash (pgcrypto)
+        const { data, error } = await supabaseClient.rpc('check_admin_credentials', {
+          p_username: usuario,
+          p_password: contrasena
+        });
+
+        if (error) {
+          console.error('RPC error validando credenciales:', error);
+          return false;
+        }
+
+        // data puede venir como true/false o como un objeto/array según versión; normalizamos
+        if (data === true || data === 't' || data === 1) return true;
+        if (Array.isArray(data) && data.length > 0) {
+          // Por si la función devuelve rowset con boolean
+          const v = data[0];
+          if (v === true) return true;
+          // si viene como { check_admin_credentials: true }
+          const val = Object.values(v)[0];
+          return !!val;
+        }
+
+        return false;
+      } catch (err) {
+        console.error('Error validando credenciales:', err);
+        return false;
+      }
+    }
+
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const user = document.getElementById('loginUser').value;
+      const user = document.getElementById('loginUser').value.trim();
       const pass = document.getElementById('loginPass').value;
 
-      if (user === 'admin' && pass === '1234') {
+      if (!user || !pass) {
+        alert('⚠️ Completa usuario y contraseña');
+        return;
+      }
+
+      const credencialesValidas = await validarAdminCredenciales(user, pass);
+      
+      if (credencialesValidas) {
         document.getElementById('adminLogin').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
         await cargarAdmin();
       } else {
-        alert('❌ Credenciales incorrectas');
+        alert('❌ Usuario o contraseña incorrectos');
       }
     });
 
