@@ -314,110 +314,28 @@
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center gap-2">
             <div class="step-indicator active" id="stepInd1">1</div>
-            <span class="text-sm font-medium text-gray-700">Tipo</span>
+            <span class="text-sm font-medium text-gray-700">Fecha</span>
           </div>
           <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
           <div class="flex items-center gap-2">
             <div class="step-indicator inactive" id="stepInd2">2</div>
-            <span class="text-sm font-medium text-gray-400">Fecha</span>
-          </div>
-          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
-          <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd3">3</div>
             <span class="text-sm font-medium text-gray-400">Hora</span>
           </div>
           <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
           <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd4">4</div>
+            <div class="step-indicator inactive" id="stepInd3">3</div>
             <span class="text-sm font-medium text-gray-400">Datos</span>
           </div>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" id="progressBar" style="width: 25%"></div>
+          <div class="progress-fill" id="progressBar" style="width: 33.33%"></div>
         </div>
       </div>
 
-      <!-- Paso 1: Tipo de Consulta -->
+      <!-- Paso 1: Fecha -->
       <div id="paso1" class="fade-in">
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">Selecciona tu consulta</h2>
-        <p class="text-gray-600 mb-6">Elige el tipo de atención que necesitas</p>
-
-        <div class="space-y-3">
-          <div class="option-card card p-4" data-tipo="normal">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-8 h-8 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd"
-                        d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                        clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                  <h3 class="font-bold text-gray-900">Consulta General</h3>
-                </div>
-                <p class="text-sm text-gray-600 mb-2">Revisión completa y diagnóstico</p>
-                <p class="text-xs text-gray-500">40 min </p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-gray-900">$1,100</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="option-card card p-4" data-tipo="urgente">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-8 h-8 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                  <h3 class="font-bold text-gray-900">Consulta Urgente</h3>
-                </div>
-                <p class="text-sm text-gray-600 mb-2">Atención prioritaria inmediata</p>
-                <p class="text-xs text-gray-500">60 min</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-gray-900">$1,800</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="option-card card p-4" data-tipo="video">
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <div class="w-8 h-8 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd"
-                        d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z"
-                        clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                  <h3 class="font-bold text-gray-900">Consulta Subsecuente</h3>
-                </div>
-                <p class="text-sm text-gray-600 mb-2">Interpretación de estudios</p>
-                <p class="text-sm text-gray-600 mb-2">Programación de cirugías, previa valoración inicial</p>
-                <p class="text-sm text-gray-600 mb-2">Consultas subsecuentes dentro del mismo mes </p>
-                <p class="text-xs text-gray-500">30 min</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold text-gray-900">$600</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Paso 2: Fecha -->
-      <div id="paso2" class="hidden">
         <div class="flex items-center justify-between mb-6">
-          <button id="btnBack2" class="btn-secondary">← Atrás</button>
+          <div class="w-24"></div>
           <div class="text-center">
             <h2 class="text-xl font-bold text-gray-900">Selecciona la fecha</h2>
             <p class="text-sm text-gray-500" id="mesNombre">Enero 2025</p>
@@ -452,10 +370,10 @@
         </div>
       </div>
 
-      <!-- Paso 3: Hora -->
-      <div id="paso3" class="hidden">
+      <!-- Paso 2: Hora -->
+      <div id="paso2" class="hidden">
         <div class="flex items-center justify-between mb-6">
-          <button id="btnBack3" class="btn-secondary">← Atrás</button>
+          <button id="btnBack2" class="btn-secondary">← Atrás</button>
           <div class="text-center">
             <h2 class="text-xl font-bold text-gray-900">Elige tu horario</h2>
             <p class="text-sm text-gray-500" id="fechaSeleccionada">-</p>
@@ -463,17 +381,65 @@
           <div class="w-24"></div>
         </div>
 
-        <div class="card p-4">
-          <div id="horariosContainer" class="time-grid">
-            <!-- Generado dinámicamente -->
+        <!-- Banner informativo de precios -->
+        <div class="card p-4 mb-4 bg-blue-50 border border-blue-200">
+          <p class="text-sm font-semibold text-blue-900 mb-3">💡 Tipos de Consulta y Precios</p>
+          <div class="space-y-3">
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1">
+                <span class="text-sm text-blue-800"><strong> Consulta General</strong></span>
+                <p class="text-xs text-blue-700 mt-1">Revisión completa y diagnóstico (40 min)</p>
+              </div>
+              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,100</span>
+            </div>
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1">
+                <span class="text-sm text-blue-800"><strong> Consulta Subsecuente</strong></span>
+                <p class="text-xs text-blue-700 mt-1">Interpretación de estudios • Consultas subsecuentes dentro del mismo mes • Programación de cirugías, previa valoración inicial (30 min)</p>
+                <p class="text-xs text-blue-800 font-bold mt-1 bg-blue-100 px-2 py-1 rounded inline-block">Se te otorgará un código</p>
+              </div>
+              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$600</span>
+            </div>
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1">
+                <span class="text-sm text-blue-800"><strong>
+                   Consulta Urgente</strong></span>
+                <p class="text-xs text-blue-700 mt-1">Atención prioritaria inmediata (60 min)</p>
+              </div>
+              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,800</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección Consulta General -->
+        <div class="mb-6">
+          <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <span></span> Consulta General - $1,100
+          </h3>
+          <div class="card p-4">
+            <div id="horariosGeneralContainer" class="time-grid">
+              <!-- Generado dinámicamente -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección Consulta Urgente -->
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <span></span> Consulta Urgente - $1,800
+          </h3>
+          <div class="card p-4">
+            <div id="horariosUrgentContainer" class="time-grid">
+              <!-- Generado dinámicamente -->
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Paso 4: Datos -->
-      <div id="paso4" class="hidden">
+      <!-- Paso 3: Datos -->
+      <div id="paso3" class="hidden">
         <div class="flex items-center justify-between mb-6">
-          <button id="btnBack4" class="btn-secondary">← Atrás</button>
+          <button id="btnBack3" class="btn-secondary">← Atrás</button>
           <h2 class="text-xl font-bold text-gray-900">Tus datos</h2>
           <div class="w-24"></div>
         </div>
@@ -960,23 +926,18 @@
           else ind.classList.add('inactive');
         }
       }
-      if (step <= 4) document.getElementById(`paso${step}`).classList.remove('hidden');
-      const progress = (step / 4) * 100;
+      if (step <= 3) document.getElementById(`paso${step}`).classList.remove('hidden');
+      const progress = (step / 3) * 100;
       document.getElementById('progressBar').style.width = `${progress}%`;
       currentStep = step;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ============================================
-    // PASO 1: TIPO
+    // INICIAR EN PASO 1 (FECHA)
     // ============================================
-    document.querySelectorAll('[data-tipo]').forEach(card => {
-      card.addEventListener('click', () => {
-        document.querySelectorAll('[data-tipo]').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedType = card.dataset.tipo;
-        setTimeout(() => showStep(2), 300);
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      showStep(1);
     });
 
     // ============================================
@@ -1032,7 +993,7 @@
             selectedDate = fechaStr;
             document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
             cell.classList.add('selected');
-            setTimeout(() => showStep(3), 300);
+            setTimeout(() => showStep(2), 300);
             renderHorarios();
           });
         }
@@ -1052,87 +1013,94 @@
     });
 
     // ============================================
-    // PASO 3: HORARIOS
+    // PASO 2: HORARIOS
     // ============================================
     async function renderHorarios() {
       document.getElementById('fechaSeleccionada').textContent = selectedDate;
-      const container = document.getElementById('horariosContainer');
-      container.innerHTML = '<p class="col-span-full text-center text-gray-500">Cargando...</p>';
-
+      
       const citas = await obtenerCitas(selectedDate);
       const ocupados = citas.map(c => c.horario);
 
       const dateObj = new Date(selectedDate + 'T00:00:00');
       const diaSemana = dateObj.getDay();
 
-      let horarios = [];
+      let horariosGeneral = [];
+      let horariosUrgent = [];
 
       // Lunes (1), Miércoles (3), Jueves (4), Viernes (5)
       if (diaSemana === 1 || diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
-        if (selectedType === 'normal') {
-          // 11:00 a 13:40 (40 min intervals)
-          // 11:00, 11:40, 12:20, 13:00. (13:40 is start of Urgent)
-          horarios = ['11:00:00', '11:40:00', '12:20:00', '13:00:00'];
-        } else if (selectedType === 'urgente') {
-          // 10:00 a 11:00 y 13:40 a 14:20
-          horarios = ['10:00:00', '13:40:00'];
-        } else if (selectedType === 'video') { // Subsecuente
-          // 11:00 a 13:40 (30 min intervals)
-          // 11:00, 11:30, 12:00, 12:30, 13:00. (13:30 ends at 14:00, OK? Window is till 13:40, so 13:30 might push it? 
-          // User said "share general schedule". General ends at 13:40. 13:00 general ends at 13:40.
-          // 13:30 subsequent ends at 14:00, which overlaps urgent (13:40).
-          // Safest to stop at 13:00 for subsequent too if we want to avoid overlap, or maybe 13:10? 
-          // Let's assume standard slots starting at 11:00.
-          horarios = ['11:00:00', '11:30:00', '12:00:00', '12:30:00', '13:00:00'];
-        }
+        // Consulta General: 11:00 a 13:40 (40 min intervals)
+        horariosGeneral = ['11:00:00', '11:40:00', '12:20:00', '13:00:00', '13:40:00'];
+        // Consulta Urgente: 10:00 y 14:20
+        horariosUrgent = ['10:00:00', '14:20:00'];
       }
       // Martes (2)
       else if (diaSemana === 2) {
-        if (selectedType === 'normal') {
-          // 17:00 a 19:40 (40 min intervals)
-          // 17:00, 17:40, 18:20, 19:00. (19:40 is start of Urgent)
-          horarios = ['17:00:00', '17:40:00', '18:20:00', '19:00:00'];
-        } else if (selectedType === 'urgente') {
-          // 16:00 a 17:00 y 19:40 a 20:20
-          horarios = ['16:00:00', '19:40:00'];
-        } else if (selectedType === 'video') { // Subsecuente
-          // 17:00 a 19:40 (30 min intervals)
-          // 17:00, 17:30, 18:00, 18:30, 19:00. (19:30 ends at 20:00, overlaps 19:40 urgent).
-          // 19:00 ends at 19:30. Safe.
-          horarios = ['17:00:00', '17:30:00', '18:00:00', '18:30:00', '19:00:00'];
-        }
+        // Consulta General: 17:00 a 19:40 (40 min intervals)
+        horariosGeneral = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00'];
+        // Consulta Urgente: 16:00 y 20:20
+        horariosUrgent = ['16:00:00', '20:20:00'];
       }
 
-      container.innerHTML = '';
+      // Renderizar Consulta General
+      const containerGeneral = document.getElementById('horariosGeneralContainer');
+      containerGeneral.innerHTML = '';
 
-      if (horarios.length === 0) {
-        container.innerHTML = '<p class="col-span-full text-center text-gray-500">No hay horarios disponibles para este día.</p>';
-        return;
+      if (horariosGeneral.length === 0) {
+        containerGeneral.innerHTML = '<p class="col-span-full text-center text-gray-500">No hay horarios disponibles</p>';
+      } else {
+        horariosGeneral.forEach(h => {
+          const slot = document.createElement('div');
+          slot.textContent = h.substring(0, 5);
+          slot.className = 'time-slot';
+
+          if (ocupados.includes(h)) {
+            slot.classList.add('disabled');
+          } else {
+            slot.addEventListener('click', () => {
+              selectedTime = h;
+              selectedType = 'normal';
+              document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+              slot.classList.add('selected');
+              setTimeout(() => showStep(3), 300);
+            });
+          }
+
+          containerGeneral.appendChild(slot);
+        });
       }
 
-      horarios.forEach(h => {
-        const slot = document.createElement('div');
-        // Formato HH:MM
-        slot.textContent = h.substring(0, 5);
-        slot.className = 'time-slot';
+      // Renderizar Consulta Urgente
+      const containerUrgent = document.getElementById('horariosUrgentContainer');
+      containerUrgent.innerHTML = '';
 
-        if (ocupados.includes(h)) {
-          slot.classList.add('disabled');
-        } else {
-          slot.addEventListener('click', () => {
-            selectedTime = h;
-            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-            slot.classList.add('selected');
-            setTimeout(() => showStep(4), 300);
-          });
-        }
+      if (horariosUrgent.length === 0) {
+        containerUrgent.innerHTML = '<p class="col-span-full text-center text-gray-500">No hay horarios disponibles</p>';
+      } else {
+        horariosUrgent.forEach(h => {
+          const slot = document.createElement('div');
+          slot.textContent = h.substring(0, 5);
+          slot.className = 'time-slot';
 
-        container.appendChild(slot);
-      });
+          if (ocupados.includes(h)) {
+            slot.classList.add('disabled');
+          } else {
+            slot.addEventListener('click', () => {
+              selectedTime = h;
+              selectedType = 'urgente';
+              document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+              slot.classList.add('selected');
+              setTimeout(() => showStep(3), 300);
+            });
+          }
+
+          containerUrgent.appendChild(slot);
+        });
+      }
     }
 
     // ============================================
-    // PASO 4: AUTOCOMPLETADO
+    // PASO 3: AUTOCOMPLETADO
     // ============================================
     document.getElementById('inputTelefono').addEventListener('input', async (e) => {
       const telefono = e.target.value.trim();
@@ -1280,7 +1248,7 @@
         document.getElementById('resumenPrecio').textContent = precios[selectedType];
         document.getElementById('linkPago').href = STRIPE_LINKS[selectedType];
 
-        document.getElementById('paso4').classList.add('hidden');
+        document.getElementById('paso3').classList.add('hidden');
         document.getElementById('confirmacion').classList.remove('hidden');
 
         document.getElementById('formDatos').reset();
@@ -1301,7 +1269,6 @@
     // ============================================
     document.getElementById('btnBack2').addEventListener('click', () => showStep(1));
     document.getElementById('btnBack3').addEventListener('click', () => showStep(2));
-    document.getElementById('btnBack4').addEventListener('click', () => showStep(3));
 
     // ============================================
     // ADMIN
