@@ -623,26 +623,49 @@
           </div>
         </div>
 
-        <a href="#" id="linkPago" target="_blank"
-          class="btn-primary w-full flex items-center justify-center gap-2 mb-4">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-            <path fill-rule="evenodd"
-              d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-              clip-rule="evenodd" />
-          </svg>
-          <span>Pagar ahora</span>
-        </a>
-
+        <!-- Alerta de tiempo límite dinámica -->
         <div class="card p-4 bg-amber-50 border border-amber-200 mb-4">
           <p class="text-sm text-amber-800 text-center flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
                 clip-rule="evenodd" />
             </svg>
-            <span><strong>Tienes 24 horas</strong> para completar tu pago</span>
+            <span id="mensajeTiempoLimite"><strong>Tienes 5 horas</strong> para completar tu pago</span>
           </p>
+        </div>
+
+        <!-- Dos botones de pago -->
+        <p class="text-sm font-semibold text-gray-700 mb-3 text-center">Elige cómo pagar:</p>
+        <div class="space-y-3 mb-4">
+          <!-- Botón Tarjeta -->
+          <button id="btnPagarTarjeta"
+            class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+              <path fill-rule="evenodd"
+                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                clip-rule="evenodd" />
+            </svg>
+            <div class="text-left">
+              <div class="text-base">💳 Pagar con tarjeta</div>
+              <div class="text-xs opacity-80">Visa, Mastercard, Amex</div>
+            </div>
+          </button>
+
+          <!-- Botón Oxxo -->
+          <button id="btnPagarOxxo"
+            class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold py-4 px-6 rounded-xl hover:from-red-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z"
+                clip-rule="evenodd" />
+            </svg>
+            <div class="text-left">
+              <div class="text-base">🏪 Pagar en Oxxo</div>
+              <div class="text-xs opacity-80">Genera tu voucher de pago • 24 horas</div>
+            </div>
+          </button>
         </div>
 
         <a href="consultar.html" class="btn-secondary w-full block text-center">
@@ -868,7 +891,15 @@
     const STRIPE_LINKS = {
       normal: 'https://buy.stripe.com/eVqfZg5iq9uw3ub80ddAk03',
       urgente: 'https://buy.stripe.com/5kQaEWaCKfSU3ub2FTdAk04',
-      subsecuente: 'https://buy.stripe.com/dRmcN44em8qs9Sz6W9dAk05'
+      subsecuente: 'https://buy.stripe.com/dRmcN44em8qs9Sz6W9dAk05',
+      normal_oxxo: 'https://buy.stripe.com/bJe00i4emcGIggX6W9dAk07'
+    };
+
+    // Tiempos límite de pago por tipo y método
+    const TIEMPO_LIMITE = {
+      urgente_stripe: 2,
+      normal_stripe: 5,
+      oxxo: 24
     };
 
     // ============================================
@@ -1407,11 +1438,13 @@
         fecha: selectedDate,
         horario: selectedTime,
         tipo: selectedType,
-        pagado: false
+        pagado: false,
+        metodo_pago: 'stripe'
       };
 
       const saved = await guardarCita(cita);
       if (saved) {
+        const citaId = saved.id;
         const precios = { normal: '$1,100', urgente: '$1,800', video: '$600' };
         const tipos = { normal: 'Consulta General', urgente: 'Consulta Urgente', video: 'Consulta Subsecuente' };
 
@@ -1419,7 +1452,25 @@
         document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0, 5)}`;
         document.getElementById('resumenTipo').textContent = tipos[selectedType];
         document.getElementById('resumenPrecio').textContent = precios[selectedType];
-        document.getElementById('linkPago').href = STRIPE_LINKS[selectedType];
+
+        // Tiempo límite dinámico según tipo (Oxxo se actualiza al hacer clic)
+        const horasLimite = selectedType === 'urgente' ? 2 : 5;
+        document.getElementById('mensajeTiempoLimite').innerHTML =
+          `<strong>Tienes ${horasLimite} horas</strong> para completar tu pago con tarjeta, o <strong>24 horas</strong> si pagas en Oxxo`;
+
+        // Botón Tarjeta: actualiza metodo_pago = 'stripe' y redirige con folio como referencia
+        document.getElementById('btnPagarTarjeta').onclick = async () => {
+          await supabaseClient.from('citas').update({ metodo_pago: 'stripe' }).eq('id', citaId);
+          const url = `${STRIPE_LINKS[selectedType]}?client_reference_id=${folioGenerado}`;
+          window.open(url, '_blank');
+        };
+
+        // Botón Oxxo: actualiza metodo_pago = 'oxxo' y redirige con folio como referencia
+        document.getElementById('btnPagarOxxo').onclick = async () => {
+          await supabaseClient.from('citas').update({ metodo_pago: 'oxxo' }).eq('id', citaId);
+          const url = `${STRIPE_LINKS['normal_oxxo']}?client_reference_id=${folioGenerado}`;
+          window.open(url, '_blank');
+        };
 
         document.getElementById('paso3').classList.add('hidden');
         document.getElementById('confirmacion').classList.remove('hidden');
