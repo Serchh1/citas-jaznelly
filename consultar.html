@@ -238,7 +238,8 @@
             </div>
             <div class="flex-1">
               <h3 class="font-bold text-orange-800 mb-1">Pago pendiente</h3>
-              <p class="text-sm text-orange-700 mb-3">Completa tu pago en las próximas 24 horas para confirmar tu cita
+              <p class="text-sm text-orange-700 mb-3" id="textoAlertaPago">
+                Completa tu pago lo antes posible para confirmar tu cita
               </p>
               <a href="#" id="linkPagoDetalle" target="_blank"
                 class="inline-flex items-center gap-2 bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold text-sm hover:bg-orange-700">
@@ -309,7 +310,7 @@
             </div>
 
             <div class="flex items-start gap-3 pb-4 border-b">
-              <div class="info-icon" id="iconoTipoDetalle">
+              <div class="info-icon">
                 <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd"
                     d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
@@ -317,8 +318,8 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500 mb-1">TIPO DE CONSULTA</p>
-                <p class="font-semibold text-gray-900" id="tipoConsultaDetalle">-</p>
+                <p class="text-xs text-gray-500 mb-1">TIPO Y MÉTODO</p>
+                <p class="font-semibold text-gray-900" id="tipoMetodoDetalle">-</p>
               </div>
             </div>
 
@@ -481,7 +482,8 @@
     const STRIPE_LINKS = {
       normal: 'https://buy.stripe.com/eVqfZg5iq9uw3ub80ddAk03',
       urgente: 'https://buy.stripe.com/5kQaEWaCKfSU3ub2FTdAk04',
-      subsecuente: 'https://buy.stripe.com/dRmcN44em8qs9Sz6W9dAk05'
+      subsecuente: 'https://buy.stripe.com/dRmcN44em8qs9Sz6W9dAk05',
+      normal_oxxo: 'https://buy.stripe.com/bJe00i4emcGIggX6W9dAk07'
     };
 
     let citaActual = null;
@@ -550,14 +552,26 @@
       document.getElementById('detalleCita').classList.remove('hidden');
       document.getElementById('sinCitas').classList.add('hidden');
 
+      document.getElementById('sinCitas').classList.add('hidden');
+
       // Estado de pago
+      const metodo = (cita.metodo_pago || 'stripe').toLowerCase();
+      const horasLimite = metodo === 'oxxo' ? 24 : (cita.tipo === 'urgente' ? 2 : 5);
+
+      const alertaPago = document.getElementById('alertaPago');
+      const textoAlertaPago = document.getElementById('textoAlertaPago');
+
       if (cita.pagado) {
-        document.getElementById('alertaPago').classList.add('hidden');
+        alertaPago.classList.add('hidden');
         document.getElementById('alertaPagado').classList.remove('hidden');
       } else {
-        document.getElementById('alertaPago').classList.remove('hidden');
+        alertaPago.classList.remove('hidden');
         document.getElementById('alertaPagado').classList.add('hidden');
-        document.getElementById('linkPagoDetalle').href = STRIPE_LINKS[cita.tipo];
+
+        const linkKey = metodo === 'oxxo' ? 'normal_oxxo' : cita.tipo;
+        document.getElementById('linkPagoDetalle').href = `${STRIPE_LINKS[linkKey]}?client_reference_id=${cita.folio}`;
+
+        textoAlertaPago.innerHTML = `Completa tu pago en las próximas <strong>${horasLimite} horas</strong> para confirmar tu cita.`;
       }
 
       // Verificar si puede cancelar (24 horas antes)
@@ -581,8 +595,8 @@
       document.getElementById('nombrePacienteDetalle').textContent = cita.nombre;
       document.getElementById('fechaHoraDetalle').textContent =
         `${formatearFecha(cita.fecha)} • ${cita.horario.substring(0, 5)}`;
-      document.getElementById('tipoConsultaDetalle').textContent = tipos[cita.tipo];
-      document.getElementById('iconoTipoDetalle').textContent = iconos[cita.tipo];
+      document.getElementById('tipoMetodoDetalle').textContent =
+        `${tipos[cita.tipo]} • Pago: ${(cita.metodo_pago || 'Tarjeta').toUpperCase()}`;
       document.getElementById('costoDetalle').textContent = precios[cita.tipo];
       document.getElementById('motivoDetalle').textContent = cita.motivo;
       document.getElementById('contactoDetalle').textContent =
