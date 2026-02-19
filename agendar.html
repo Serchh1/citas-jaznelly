@@ -387,8 +387,25 @@
 
           <!-- Banner de disponibilidad mejorado -->
           <div class="mt-6 pt-6 border-t border-gray-200">
-            <p class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <!-- Banner de contacto prioritario -->
+            <div
+              class="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                  <i class="fas fa-phone-alt"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-indigo-900">¿No encuentras citas prioritarias?</p>
+                  <p class="text-xs text-indigo-700">Comunícate directamente al Consultorio</p>
+                </div>
+              </div>
+              <a href="tel:+524771011668"
+                class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors text-center shadow-md">
+                <i class="fas fa-phone-alt mr-2"></i>Llamar Directo
+              </a>
+            </div>
 
+            <p class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
               Disponibilidad de horarios
             </p>
             <div class="space-y-2">
@@ -474,10 +491,10 @@
             <div class="flex justify-between items-start gap-4">
               <div class="flex-1">
                 <span class="text-sm text-blue-800"><strong>
-                    Consulta Urgente</strong></span>
+                    Consulta Prioritaria</strong></span>
                 <p class="text-xs text-blue-700 mt-1">Atención prioritaria inmediata (60 min)</p>
               </div>
-              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,800</span>
+              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,600</span>
             </div>
           </div>
         </div>
@@ -494,10 +511,10 @@
           </div>
         </div>
 
-        <!-- Sección Consulta Urgente -->
+        <!-- Sección Consulta Prioritaria -->
         <div>
           <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-            <span></span> Consulta Urgente - $1,800
+            <span></span> Consulta Prioritaria - $1,600
           </h3>
           <div class="card p-4">
             <div id="horariosUrgentContainer" class="time-grid">
@@ -600,10 +617,19 @@
         </div>
 
         <!-- FOLIO -->
-        <div class="folio-display">
+        <div class="folio-display relative">
           <p class="text-sm font-semibold text-blue-900 mb-2">TU FOLIO DE CITA</p>
-          <div class="folio-number" id="folioDisplay">-</div>
+          <div class="flex items-center justify-center gap-3">
+            <div class="folio-number" id="folioDisplay">-</div>
+            <button id="btnCopyFolio" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              title="Copiar Folio">
+              <i class="far fa-copy text-2xl"></i>
+            </button>
+          </div>
           <p class="text-xs text-blue-700 mt-2">Guarda este folio para consultar tu cita</p>
+          <div id="copyToast"
+            class="hidden absolute left-1/2 -translate-x-1/2 -bottom-4 bg-gray-800 text-white text-[10px] px-2 py-1 rounded">
+            Copiado</div>
         </div>
 
         <div class="card p-6 mb-4">
@@ -842,22 +868,22 @@
               <select id="horarioBloquear" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
                 <option value="">-- Selecciona un horario --</option>
                 <optgroup label="Lunes / Miércoles / Jueves / Viernes">
-                  <option value="10:00:00">10:00 (Urgente)</option>
+                  <option value="10:00:00">10:00 (Prioritaria)</option>
                   <option value="11:00:00">11:00 (General)</option>
                   <option value="11:40:00">11:40 (General)</option>
                   <option value="12:20:00">12:20 (General)</option>
                   <option value="13:00:00">13:00 (General)</option>
                   <option value="13:40:00">13:40 (General)</option>
-                  <option value="14:20:00">14:20 (Urgente)</option>
+                  <option value="14:20:00">14:20 (Prioritaria)</option>
                 </optgroup>
                 <optgroup label="Martes">
-                  <option value="16:00:00">16:00 (Urgente)</option>
+                  <option value="16:00:00">16:00 (Prioritaria)</option>
                   <option value="17:00:00">17:00 (General)</option>
                   <option value="17:40:00">17:40 (General)</option>
                   <option value="18:20:00">18:20 (General)</option>
                   <option value="19:00:00">19:00 (General)</option>
                   <option value="19:40:00">19:40 (General)</option>
-                  <option value="20:20:00">20:20 (Urgente)</option>
+                  <option value="20:20:00">20:20 (Prioritaria)</option>
                 </optgroup>
               </select>
               <input type="text" id="motivoBloqueoHorario" placeholder="Motivo (opcional)"
@@ -1236,7 +1262,7 @@
       else if (diaSemana === 2) {
         // Consulta General: 17:00 a 19:40 (40 min intervals)
         horariosGeneral = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00'];
-        // Consulta Urgente: 16:00 y 20:20
+        // Consulta Prioritaria: 16:00 y 20:20
         horariosUrgent = ['16:00:00', '20:20:00'];
       }
 
@@ -1271,7 +1297,7 @@
         });
       }
 
-      // Renderizar Consulta Urgente
+      // Renderizar Consulta Prioritaria
       const containerUrgent = document.getElementById('horariosUrgentContainer');
       containerUrgent.innerHTML = '';
 
@@ -1302,6 +1328,16 @@
         });
       }
     }
+
+    // Botón Copiar Folio
+    document.getElementById('btnCopyFolio').addEventListener('click', () => {
+      const folio = document.getElementById('folioDisplay').textContent;
+      navigator.clipboard.writeText(folio).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2000);
+      });
+    });
 
     // ============================================
     // PASO 3: AUTOCOMPLETADO
@@ -1445,8 +1481,8 @@
       const saved = await guardarCita(cita);
       if (saved) {
         const citaId = saved.id;
-        const precios = { normal: '$1,100', urgente: '$1,800', video: '$600' };
-        const tipos = { normal: 'Consulta General', urgente: 'Consulta Urgente', video: 'Consulta Subsecuente' };
+        const precios = { normal: '$1,100', urgente: '$1,600', video: '$600' };
+        const tipos = { normal: 'Consulta General', urgente: 'Consulta Prioritaria', video: 'Consulta Subsecuente' };
 
         document.getElementById('folioDisplay').textContent = folioGenerado;
         document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0, 5)}`;

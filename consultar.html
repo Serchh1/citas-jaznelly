@@ -272,9 +272,18 @@
         </div>
 
         <!-- FOLIO -->
-        <div class="folio-display mb-6">
+        <div class="folio-display mb-6 relative">
           <p class="text-xs font-semibold text-blue-900 mb-1">FOLIO</p>
-          <div class="folio-number" id="folioDetalle">-</div>
+          <div class="flex items-center justify-center gap-3">
+            <div class="folio-number" id="folioDetalle">-</div>
+            <button id="btnCopyFolio" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              title="Copiar Folio">
+              <i class="far fa-copy text-xl"></i>
+            </button>
+          </div>
+          <div id="copyToast"
+            class="hidden absolute left-1/2 -translate-x-1/2 -bottom-2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded">
+            Copiado</div>
         </div>
 
         <!-- Detalles de la cita -->
@@ -530,13 +539,13 @@
 
       const tipos = {
         normal: 'Consulta General',
-        urgente: 'Consulta Urgente',
+        urgente: 'Consulta Prioritaria',
         video: 'Consulta Subsecuente'
       };
 
       const precios = {
         normal: '$1,100',
-        urgente: '$1,800',
+        urgente: '$1,600',
         video: '$600'
       };
 
@@ -603,6 +612,16 @@
         `${cita.telefono}${cita.email ? ' • ' + cita.email : ''}`;
     }
 
+    // Botón Copiar Folio
+    document.getElementById('btnCopyFolio').addEventListener('click', () => {
+      const folio = document.getElementById('folioDetalle').textContent;
+      navigator.clipboard.writeText(folio).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2000);
+      });
+    });
+
     function mostrarSinCitas() {
       document.getElementById('busquedaCita').classList.add('hidden');
       document.getElementById('resultadoCita').classList.remove('hidden');
@@ -630,7 +649,7 @@
 
       const tipos = {
         normal: 'Consulta General',
-        urgente: 'Consulta Urgente',
+        urgente: 'Consulta Prioritaria',
         video: 'Videollamada'
       };
 
