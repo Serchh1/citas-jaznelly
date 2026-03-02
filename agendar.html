@@ -1147,7 +1147,11 @@
 
       const citas = await obtenerCitas(fechaStr);
       const ocupados = citas.map(c => c.horario);
-      const libres = horariosDisponibles.filter(h => !ocupados.includes(h)).length;
+
+      const horariosBloqueadosData = await obtenerHorariosBloqueados(fechaStr);
+      const horariosBloqueados = horariosBloqueadosData.map(h => h.horario);
+
+      const libres = horariosDisponibles.filter(h => !ocupados.includes(h) && !horariosBloqueados.includes(h)).length;
 
       return libres;
     }
