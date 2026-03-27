@@ -565,7 +565,7 @@
 
       // Estado de pago
       const metodo = (cita.metodo_pago || 'stripe').toLowerCase();
-      const horasLimite = metodo === 'oxxo' ? 24 : (cita.tipo === 'urgente' ? 2 : 5);
+      const horasLimite = cita.tipo === 'urgente' ? 2 : 5;
 
       const alertaPago = document.getElementById('alertaPago');
       const textoAlertaPago = document.getElementById('textoAlertaPago');
