@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,1966 +9,1322 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+    * { font-family: 'DM Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #f8fafc; }
+    h1,h2,h3 { font-family: 'Playfair Display', serif; }
+    .progress-bar { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); transition: width 0.3s ease; }
+    .step-indicator { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; transition:all 0.3s; }
+    .step-indicator.active { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; box-shadow:0 4px 12px rgba(59,130,246,.4); }
+    .step-indicator.inactive { background:#e2e8f0; color:#64748b; }
+    .step-indicator.completed { background:#10b981; color:white; }
+    .card { background:white; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,.1); transition:all 0.3s; }
+    .card:hover { box-shadow:0 4px 12px rgba(0,0,0,.1); }
+    .calendar-mini { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .day-cell { aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s; }
+    .day-cell:hover:not(.disabled):not(.blocked) { background:#f1f5f9; }
+    .day-cell.selected { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; font-weight:600; }
+    .day-cell.disabled { color:#cbd5e1; cursor:not-allowed; }
+    .day-cell.blocked { background:#fee2e2; color:#dc2626; cursor:not-allowed; position:relative; }
+    .day-cell.blocked::after { content:'×'; position:absolute; top:2px; right:2px; font-size:10px; }
+    .day-cell.availability-full { background:white; border:2px solid #e2e8f0; }
+    .day-cell.availability-low { background:#fcd34d; border:2px solid #f59e0b; color:#92400e; }
+    .day-cell.availability-none { background:#fca5a5; border:2px solid #dc2626; color:#7f1d1d; }
+    .time-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:8px; }
+    .time-slot { padding:12px; border:2px solid #e2e8f0; border-radius:8px; text-align:center; font-weight:500; cursor:pointer; transition:all 0.2s; }
+    .time-slot:hover:not(.disabled) { border-color:#3b82f6; background:#eff6ff; }
+    .time-slot.selected { background:linear-gradient(135deg,#3b82f6,#8b5cf6); border-color:transparent; color:white; }
+    .time-slot.disabled { background:#f8fafc; color:#cbd5e1; cursor:not-allowed; }
+    .btn-primary { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; font-weight:600; padding:14px 28px; border-radius:12px; border:none; cursor:pointer; transition:all 0.3s; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(59,130,246,.3); }
+    .btn-secondary { background:white; color:#475569; font-weight:600; padding:14px 28px; border-radius:12px; border:2px solid #e2e8f0; cursor:pointer; transition:all 0.3s; }
+    .btn-secondary:hover { border-color:#cbd5e1; background:#f8fafc; }
+    .fade-in { animation:fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    input:focus,textarea:focus,select:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.1); }
+    @media(max-width:640px){ .day-cell{font-size:12px} .time-grid{grid-template-columns:repeat(3,1fr)} }
+    .folio-display { background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border:2px solid #3b82f6; padding:12px 16px; border-radius:16px; text-align:center; margin-bottom:16px; }
+    .folio-number { font-size:1.6rem; font-weight:700; color:#1e40af; font-family:'DM Sans',monospace; letter-spacing:1px; }
+    .folio-click-hint { display:block; margin-top:6px; font-size:.75rem; font-weight:700; color:#1d4ed8; text-decoration:underline; cursor:pointer; }
+    .copy-toast-banner { display:none; background:#10b981; color:white; font-weight:700; font-size:.875rem; text-align:center; padding:8px 12px; border-radius:10px; margin-top:8px; align-items:center; justify-content:center; gap:6px; }
+    .copy-toast-banner.show { display:flex; }
+    .tab-btn { background:#f1f5f9; color:#64748b; transition:all 0.2s; padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer; border:none; font-size:13px; }
+    .tab-btn:hover { background:#e2e8f0; }
+    .tab-btn.active { background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:white; }
 
-    * {
-      font-family: 'DM Sans', sans-serif;
-      -webkit-tap-highlight-color: transparent;
+    /* ── Estilos tabla de códigos ── */
+    .codigo-row { border-bottom:1px solid #f1f5f9; }
+    .codigo-row:last-child { border-bottom:none; }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+    .badge-active  { background:#d1fae5; color:#065f46; }
+    .badge-expired { background:#f1f5f9; color:#64748b; }
+    .badge-used    { background:#fee2e2; color:#991b1b; }
+
+    /* ── Botón "Pedir código" público ── */
+    .btn-subsecuente {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: white; font-weight: 700; padding: 16px 20px;
+      border-radius: 14px; border: none; cursor: pointer;
+      transition: all 0.3s; width: 100%; text-align: left;
+      display: flex; align-items: center; gap: 14px;
     }
+    .btn-subsecuente:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,.35); }
 
-    body {
-      background: #f8fafc;
-    }
+    /* ── Modal código generado ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:200; padding:16px; }
+    .modal-box { background:white; border-radius:20px; padding:28px 24px; max-width:420px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .codigo-grande { font-size:2rem; font-weight:800; letter-spacing:3px; color:#1e40af; background:linear-gradient(135deg,#eff6ff,#dbeafe); padding:14px 20px; border-radius:12px; border:2px dashed #3b82f6; text-align:center; }
 
-    h1,
-    h2,
-    h3 {
-      font-family: 'Playfair Display', serif;
-    }
-
-    .progress-bar {
-      height: 4px;
-      background: #e2e8f0;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-      transition: width 0.3s ease;
-    }
-
-    .step-indicator {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s;
-    }
-
-    .step-indicator.active {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    .step-indicator.inactive {
-      background: #e2e8f0;
-      color: #64748b;
-    }
-
-    .step-indicator.completed {
-      background: #10b981;
-      color: white;
-    }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s;
-    }
-
-    .card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .option-card {
-      border: 2px solid #e2e8f0;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-
-    .option-card:hover {
-      border-color: #cbd5e1;
-      transform: translateY(-2px);
-    }
-
-    .option-card.selected {
-      border-color: #3b82f6;
-      background: #eff6ff;
-    }
-
-    .calendar-mini {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-
-    .day-cell {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .day-cell:hover:not(.disabled):not(.blocked) {
-      background: #f1f5f9;
-    }
-
-    .day-cell.selected {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      font-weight: 600;
-    }
-
-    .day-cell.disabled {
-      color: #cbd5e1;
-      cursor: not-allowed;
-    }
-
-    .day-cell.blocked {
-      background: #fee2e2;
-      color: #dc2626;
-      cursor: not-allowed;
-      position: relative;
-    }
-
-    .day-cell.blocked::after {
-      content: '×';
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      font-size: 10px;
-    }
-
-    .day-cell.availability-full {
-      background: white;
-      border: 2px solid #e2e8f0;
-    }
-
-    .day-cell.availability-low {
-      background: #fcd34d;
-      border: 2px solid #f59e0b;
-      color: #92400e;
-    }
-
-    .day-cell.availability-none {
-      background: #fca5a5;
-      border: 2px solid #dc2626;
-      color: #7f1d1d;
-    }
-
-    .time-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
-    }
-
-    .time-slot {
-      padding: 12px;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .time-slot:hover:not(.disabled) {
-      border-color: #3b82f6;
-      background: #eff6ff;
-    }
-
-    .time-slot.selected {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      border-color: transparent;
-      color: white;
-    }
-
-    .time-slot.disabled {
-      background: #f8fafc;
-      color: #cbd5e1;
-      cursor: not-allowed;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      font-weight: 600;
-      padding: 14px 28px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-    }
-
-    .btn-secondary {
-      background: white;
-      color: #475569;
-      font-weight: 600;
-      padding: 14px 28px;
-      border-radius: 12px;
-      border: 2px solid #e2e8f0;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-secondary:hover {
-      border-color: #cbd5e1;
-      background: #f8fafc;
-    }
-
-    .fade-in {
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    nav {
-      backdrop-filter: blur(20px) saturate(180%);
-      background: rgba(255, 255, 255, 0.9);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
-    }
-
-    @media (max-width: 640px) {
-      .day-cell {
-        font-size: 12px;
-      }
-
-      .time-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    /* CAMBIO 1: Folio más compacto */
-    .folio-display {
-      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-      border: 2px solid #3b82f6;
-      padding: 12px 16px;
-      border-radius: 16px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-
-    .folio-number {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #1e40af;
-      font-family: 'DM Sans', monospace;
-      letter-spacing: 1px;
-    }
-
-    /* CAMBIO 3: Leyenda de clic para copiar */
-    .folio-click-hint {
-      display: block;
-      margin-top: 6px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #1d4ed8;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    /* Toast de copiado más visible */
-    .copy-toast-banner {
-      display: none;
-      background: #10b981;
-      color: white;
-      font-weight: 700;
-      font-size: 0.875rem;
-      text-align: center;
-      padding: 8px 12px;
-      border-radius: 10px;
-      margin-top: 8px;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .copy-toast-banner.show {
-      display: flex;
-    }
-
-    .tab-btn {
-      background: #f1f5f9;
-      color: #64748b;
-      transition: all 0.2s;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-    }
-
-    .tab-btn:hover {
-      background: #e2e8f0;
-    }
-
-    .tab-btn.active {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-    }
+    /* spinner */
+    .spinner { width:22px; height:22px; border:3px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
   </style>
 </head>
-
 <body>
-  <!-- Header -->
-  <header class="bg-white border-b sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div>
-        <h1 class="text-lg font-bold text-gray-900">Dra. Jaznelly Lesso Zamora</h1>
-        <p class="text-xs text-gray-500">Oftalmología</p>
+
+<!-- Header -->
+<header class="bg-white border-b sticky top-0 z-50">
+  <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+    <div>
+      <h1 class="text-lg font-bold text-gray-900">Dra. Jaznelly Lesso Zamora</h1>
+      <p class="text-xs text-gray-500">Oftalmología</p>
+    </div>
+    <div class="flex gap-3">
+      <a href="index.html" class="text-sm text-gray-600 font-semibold hover:text-gray-900">Inicio</a>
+      <a href="consultar.html" class="text-sm text-blue-600 font-semibold hover:text-blue-700">Consultar</a>
+      <button id="btnAdmin" class="text-sm text-gray-400 font-semibold hover:text-gray-600">Admin</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-6 pb-24">
+
+  <!-- ════════════════════════════════════════
+       VISTA RESERVA
+  ════════════════════════════════════════ -->
+  <div id="vistaReserva">
+
+    <!-- Progreso -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center gap-2">
+          <div class="step-indicator active" id="stepInd1">1</div>
+          <span class="text-sm font-medium text-gray-700">Fecha</span>
+        </div>
+        <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+        <div class="flex items-center gap-2">
+          <div class="step-indicator inactive" id="stepInd2">2</div>
+          <span class="text-sm font-medium text-gray-400">Hora</span>
+        </div>
+        <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+        <div class="flex items-center gap-2">
+          <div class="step-indicator inactive" id="stepInd3">3</div>
+          <span class="text-sm font-medium text-gray-400">Datos</span>
+        </div>
       </div>
-      <div class="flex gap-3">
-        <a href="index.html" class="text-sm text-gray-600 font-semibold hover:text-gray-900">Inicio</a>
-        <a href="consultar.html" class="text-sm text-blue-600 font-semibold hover:text-blue-700">Consultar</a>
-        <button id="btnAdmin" class="text-sm text-gray-400 font-semibold hover:text-gray-600">Admin</button>
+      <div class="progress-bar"><div class="progress-fill" id="progressBar" style="width:33.33%"></div></div>
+    </div>
+
+    <!-- ── BANNER SUBSECUENTE (visible solo en paso 1) ── -->
+    <div id="bannerSubsecuente" class="mb-5">
+      <button class="btn-subsecuente" onclick="abrirModalPedirCodigo()">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">📋</div>
+        <div class="flex-1">
+          <div class="text-base font-bold">¿Ya tienes cita previa? Pide tu código</div>
+          <div class="text-xs opacity-85 mt-0.5">Consulta subsecuente · Solo $600 · Toca aquí para solicitarlo</div>
+        </div>
+        <i class="fas fa-chevron-right opacity-70"></i>
+      </button>
+    </div>
+
+    <!-- Paso 1: Fecha -->
+    <div id="paso1" class="fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div class="w-24"></div>
+        <div class="text-center">
+          <h2 class="text-xl font-bold text-gray-900">Selecciona la fecha</h2>
+          <p class="text-sm text-gray-500" id="mesNombre"></p>
+        </div>
+        <div class="w-24"></div>
+      </div>
+      <div class="card p-4">
+        <div class="flex justify-between items-center mb-4">
+          <button id="prevMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">←</button>
+          <span class="font-semibold text-gray-900" id="mesActual2"></span>
+          <button id="nextMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">→</button>
+        </div>
+        <div class="calendar-mini mb-2">
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">D</div>
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">L</div>
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">J</div>
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">V</div>
+          <div class="text-center text-xs font-semibold text-gray-500 py-2">S</div>
+        </div>
+        <div class="calendar-mini" id="calendarioDias"></div>
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <div class="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600"><i class="fas fa-phone-alt"></i></div>
+              <div>
+                <p class="text-sm font-bold text-indigo-900">¿No encuentras citas prioritarias?</p>
+                <p class="text-xs text-indigo-700">Comunícate directamente al Consultorio</p>
+              </div>
+            </div>
+            <a href="tel:+524771011668" class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors text-center shadow-md">
+              <i class="fas fa-phone-alt mr-2"></i>Llamar Directo
+            </a>
+          </div>
+          <p class="text-sm font-bold text-gray-800 mb-4">Disponibilidad de horarios</p>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <div class="w-8 h-8 rounded-lg border-2 border-emerald-400 bg-white flex items-center justify-center">
+                <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              </div>
+              <div><p class="text-sm font-semibold text-emerald-900">Disponible</p><p class="text-xs text-emerald-700">3 o más horarios</p></div>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <div class="w-8 h-8 rounded-lg border-2 border-amber-400 bg-yellow-300 flex items-center justify-center">
+                <svg class="w-5 h-5 text-amber-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              </div>
+              <div><p class="text-sm font-semibold text-amber-900">Poca disponibilidad</p><p class="text-xs text-amber-700">1 a 2 horarios</p></div>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div class="w-8 h-8 rounded-lg border-2 border-red-400 bg-red-300 flex items-center justify-center">
+                <svg class="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              </div>
+              <div><p class="text-sm font-semibold text-red-900">Lleno</p><p class="text-xs text-red-700">Sin horarios disponibles</p></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </header>
 
-  <!-- Contenedor Principal -->
-  <main class="max-w-4xl mx-auto px-4 py-6 pb-24">
-
-    <!-- VISTA: Reservar Cita -->
-    <div id="vistaReserva">
-
-      <!-- Progreso -->
-      <div class="mb-8">
-        <div class="flex justify-between items-center mb-3">
-          <div class="flex items-center gap-2">
-            <div class="step-indicator active" id="stepInd1">1</div>
-            <span class="text-sm font-medium text-gray-700">Fecha</span>
-          </div>
-          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
-          <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd2">2</div>
-            <span class="text-sm font-medium text-gray-400">Hora</span>
-          </div>
-          <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
-          <div class="flex items-center gap-2">
-            <div class="step-indicator inactive" id="stepInd3">3</div>
-            <span class="text-sm font-medium text-gray-400">Datos</span>
-          </div>
+    <!-- Paso 2: Hora -->
+    <div id="paso2" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <button id="btnBack2" class="btn-secondary">← Atrás</button>
+        <div class="text-center">
+          <h2 class="text-xl font-bold text-gray-900">Elige tu horario</h2>
+          <p class="text-sm text-gray-500" id="fechaSeleccionada">-</p>
         </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressBar" style="width: 33.33%"></div>
+        <div class="w-24"></div>
+      </div>
+      <div class="card p-4 mb-4 bg-blue-50 border border-blue-200">
+        <p class="text-sm font-semibold text-blue-900 mb-3">💡 Tipos de Consulta y Precios</p>
+        <div class="space-y-3">
+          <div class="flex justify-between items-start gap-4">
+            <div class="flex-1"><span class="text-sm text-blue-800"><strong>Consulta General</strong></span><p class="text-xs text-blue-700 mt-1">Revisión completa y diagnóstico (40 min)</p></div>
+            <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,100</span>
+          </div>
+          <div class="flex justify-between items-start gap-4">
+            <div class="flex-1"><span class="text-sm text-blue-800"><strong>Consulta Subsecuente</strong></span><p class="text-xs text-blue-700 mt-1">Interpretación de estudios • Consultas subsecuentes dentro del mismo mes (30 min)</p><p class="text-xs text-blue-800 font-bold mt-1 bg-blue-100 px-2 py-1 rounded inline-block">Requiere código especial</p></div>
+            <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$600</span>
+          </div>
+          <div class="flex justify-between items-start gap-4">
+            <div class="flex-1"><span class="text-sm text-blue-800"><strong>Consulta Prioritaria</strong></span><p class="text-xs text-blue-700 mt-1">Atención prioritaria inmediata (60 min)</p></div>
+            <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,600</span>
+          </div>
         </div>
       </div>
+      <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-3">Consulta General - $1,100</h3>
+        <div class="card p-4"><div id="horariosGeneralContainer" class="time-grid"></div></div>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-gray-900 mb-3">Consulta Prioritaria - $1,600</h3>
+        <div class="card p-4"><div id="horariosUrgentContainer" class="time-grid"></div></div>
+      </div>
+    </div>
 
-      <!-- Paso 1: Fecha -->
-      <div id="paso1" class="fade-in">
-        <div class="flex items-center justify-between mb-6">
-          <div class="w-24"></div>
-          <div class="text-center">
-            <h2 class="text-xl font-bold text-gray-900">Selecciona la fecha</h2>
-            <p class="text-sm text-gray-500" id="mesNombre">Enero 2025</p>
-          </div>
-          <div class="w-24"></div>
-        </div>
-
+    <!-- Paso 3: Datos -->
+    <div id="paso3" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <button id="btnBack3" class="btn-secondary">← Atrás</button>
+        <h2 class="text-xl font-bold text-gray-900">Tus datos</h2>
+        <div class="w-24"></div>
+      </div>
+      <form id="formDatos" class="space-y-4">
         <div class="card p-4">
-          <div class="flex justify-between items-center mb-4">
-            <button id="prevMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
-              ←
-            </button>
-            <span class="font-semibold text-gray-900" id="mesActual2">Enero 2025</span>
-            <button id="nextMes" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
-              →
-            </button>
-          </div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono * <span class="text-xs text-gray-500">(10 dígitos)</span></label>
+          <input type="tel" id="inputTelefono" required maxlength="10" pattern="[0-9]{10}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="4491234567">
+        </div>
+        <div id="indicadorBusqueda" class="hidden card p-3 bg-blue-50 border border-blue-200">
+          <p class="text-sm text-blue-700 flex items-center gap-2"><svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span>Buscando tus datos...</span></p>
+        </div>
+        <div id="mensajePacienteEncontrado" class="hidden card p-3 bg-green-50 border border-green-200">
+          <p class="text-sm text-green-700 flex items-center gap-2"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>¡Te encontramos! Solo confirma tu motivo de consulta</span></p>
+        </div>
+        <div class="card p-4" id="campoNombre"><label class="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label><input type="text" id="inputNombre" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="JUAN" style="text-transform:uppercase;"></div>
+        <div class="card p-4" id="campoApellidoPaterno"><label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Paterno *</label><input type="text" id="inputApellidoPaterno" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="PÉREZ" style="text-transform:uppercase;"></div>
+        <div class="card p-4" id="campoApellidoMaterno"><label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Materno *</label><input type="text" id="inputApellidoMaterno" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="GARCÍA" style="text-transform:uppercase;"></div>
+        <div class="card p-4" id="campoEmail"><label class="block text-sm font-semibold text-gray-700 mb-2">Email <span class="text-xs text-gray-500">(opcional)</span></label><input type="email" id="inputEmail" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="tu@email.com"></div>
+        <div class="card p-4"><label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de consulta *</label><textarea id="inputMotivo" required rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="Describe tu situación..."></textarea></div>
+        <button type="submit" class="btn-primary w-full">Confirmar reserva →</button>
+      </form>
+    </div>
 
-          <div class="calendar-mini mb-2">
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">D</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">L</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">M</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">J</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">V</div>
-            <div class="text-center text-xs font-semibold text-gray-500 py-2">S</div>
-          </div>
-
-          <div class="calendar-mini" id="calendarioDias">
-            <!-- Generado dinámicamente -->
-          </div>
-
-          <!-- Banner de disponibilidad -->
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <div
-              class="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
-                  <i class="fas fa-phone-alt"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-bold text-indigo-900">¿No encuentras citas prioritarias?</p>
-                  <p class="text-xs text-indigo-700">Comunícate directamente al Consultorio</p>
-                </div>
-              </div>
-              <a href="tel:+524771011668"
-                class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors text-center shadow-md">
-                <i class="fas fa-phone-alt mr-2"></i>Llamar Directo
-              </a>
-            </div>
-
-            <p class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-              Disponibilidad de horarios
-            </p>
-            <div class="space-y-2">
-              <div class="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                <div class="w-8 h-8 rounded-lg border-2 border-emerald-400 bg-white flex items-center justify-center">
-                  <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-emerald-900">Disponible</p>
-                  <p class="text-xs text-emerald-700">3 o más horarios</p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <div
-                  class="w-8 h-8 rounded-lg border-2 border-amber-400 bg-yellow-300 flex items-center justify-center">
-                  <svg class="w-5 h-5 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-amber-900">Poca disponibilidad</p>
-                  <p class="text-xs text-amber-700">1 a 2 horarios</p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                <div class="w-8 h-8 rounded-lg border-2 border-red-400 bg-red-300 flex items-center justify-center">
-                  <svg class="w-5 h-5 text-red-700" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <p class="text-sm font-semibold text-red-900">Lleno</p>
-                  <p class="text-xs text-red-700">Sin horarios disponibles</p>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- Confirmación -->
+    <div id="confirmacion" class="hidden">
+      <div class="text-center mb-4">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-1">¡Cita confirmada!</h2>
+        <p class="text-sm text-gray-600">Tu reserva ha sido guardada</p>
+      </div>
+      <div class="folio-display">
+        <p class="text-xs font-semibold text-blue-900 mb-1">TU FOLIO DE CITA</p>
+        <div class="folio-number" id="folioDisplay">-</div>
+        <span class="folio-click-hint" id="folioClickHint" onclick="copiarFolioManual()">👆 Da clic AQUÍ para copiar tu folio</span>
+        <div class="copy-toast-banner" id="copyToastBanner"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>¡Folio copiado en tu portapapeles!</div>
+        <p class="text-xs text-blue-700 mt-1">Guarda este folio para consultar o cancelar tu cita</p>
+      </div>
+      <div class="card p-4 mb-4">
+        <div class="space-y-3">
+          <div><p class="text-xs text-gray-500 mb-0.5">FECHA Y HORA</p><p class="font-bold" id="resumenFecha">-</p></div>
+          <div><p class="text-xs text-gray-500 mb-0.5">TIPO</p><p class="font-semibold" id="resumenTipo">-</p></div>
+          <div><p class="text-xs text-gray-500 mb-0.5">TOTAL</p><p class="text-2xl font-bold text-blue-600" id="resumenPrecio">-</p></div>
         </div>
       </div>
-
-      <!-- Paso 2: Hora -->
-      <div id="paso2" class="hidden">
-        <div class="flex items-center justify-between mb-6">
-          <button id="btnBack2" class="btn-secondary">← Atrás</button>
-          <div class="text-center">
-            <h2 class="text-xl font-bold text-gray-900">Elige tu horario</h2>
-            <p class="text-sm text-gray-500" id="fechaSeleccionada">-</p>
-          </div>
-          <div class="w-24"></div>
-        </div>
-
-        <!-- Banner informativo de precios -->
-        <div class="card p-4 mb-4 bg-blue-50 border border-blue-200">
-          <p class="text-sm font-semibold text-blue-900 mb-3">💡 Tipos de Consulta y Precios</p>
-          <div class="space-y-3">
-            <div class="flex justify-between items-start gap-4">
-              <div class="flex-1">
-                <span class="text-sm text-blue-800"><strong> Consulta General</strong></span>
-                <p class="text-xs text-blue-700 mt-1">Revisión completa y diagnóstico (40 min)</p>
-              </div>
-              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,100</span>
-            </div>
-            <div class="flex justify-between items-start gap-4">
-              <div class="flex-1">
-                <span class="text-sm text-blue-800"><strong> Consulta Subsecuente</strong></span>
-                <p class="text-xs text-blue-700 mt-1">Interpretación de estudios • Consultas subsecuentes dentro del
-                  mismo mes • Programación de cirugías, previa valoración inicial (30 min)</p>
-                <p class="text-xs text-blue-800 font-bold mt-1 bg-blue-100 px-2 py-1 rounded inline-block">Se te
-                  otorgará un código</p>
-              </div>
-              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$600</span>
-            </div>
-            <div class="flex justify-between items-start gap-4">
-              <div class="flex-1">
-                <span class="text-sm text-blue-800"><strong>
-                    Consulta Prioritaria</strong></span>
-                <p class="text-xs text-blue-700 mt-1">Atención prioritaria inmediata (60 min)</p>
-              </div>
-              <span class="text-sm font-bold text-blue-900 whitespace-nowrap">$1,600</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sección Consulta General -->
-        <div class="mb-6">
-          <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-            <span></span> Consulta General - $1,100
-          </h3>
-          <div class="card p-4">
-            <div id="horariosGeneralContainer" class="time-grid">
-              <!-- Generado dinámicamente -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Sección Consulta Prioritaria -->
-        <div>
-          <h3 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-            <span></span> Consulta Prioritaria - $1,600
-          </h3>
-          <div class="card p-4">
-            <div id="horariosUrgentContainer" class="time-grid">
-              <!-- Generado dinámicamente -->
-            </div>
-          </div>
-        </div>
+      <div class="card p-3 bg-amber-50 border border-amber-200 mb-4">
+        <p class="text-sm text-amber-800 text-center flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+          <span id="mensajeTiempoLimite"><strong>Tienes 5 horas</strong> para completar tu pago</span>
+        </p>
       </div>
-
-      <!-- Paso 3: Datos -->
-      <div id="paso3" class="hidden">
-        <div class="flex items-center justify-between mb-6">
-          <button id="btnBack3" class="btn-secondary">← Atrás</button>
-          <h2 class="text-xl font-bold text-gray-900">Tus datos</h2>
-          <div class="w-24"></div>
-        </div>
-
-        <form id="formDatos" class="space-y-4">
-          <div class="card p-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono * <span
-                class="text-xs text-gray-500">(10 dígitos)</span></label>
-            <input type="tel" id="inputTelefono" required maxlength="10" pattern="[0-9]{10}"
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="4491234567">
-            <p class="text-xs text-gray-500 mt-1">Ingresa tu teléfono para buscar tus datos</p>
-          </div>
-
-          <div id="indicadorBusqueda" class="hidden card p-3 bg-blue-50 border border-blue-200">
-            <p class="text-sm text-blue-700 flex items-center gap-2">
-              <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span>Buscando tus datos...</span>
-            </p>
-          </div>
-
-          <div id="mensajePacienteEncontrado" class="hidden card p-3 bg-green-50 border border-green-200">
-            <p class="text-sm text-green-700 flex items-center gap-2">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clip-rule="evenodd" />
-              </svg>
-              <span>¡Te encontramos! Solo confirma tu motivo de consulta</span>
-            </p>
-          </div>
-
-          <div class="card p-4" id="campoNombre">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre *</label>
-            <input type="text" id="inputNombre" required
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="JUAN"
-              style="text-transform: uppercase;">
-          </div>
-
-          <div class="card p-4" id="campoApellidoPaterno">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Paterno *</label>
-            <input type="text" id="inputApellidoPaterno" required
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="PÉREZ"
-              style="text-transform: uppercase;">
-          </div>
-
-          <div class="card p-4" id="campoApellidoMaterno">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido Materno *</label>
-            <input type="text" id="inputApellidoMaterno" required
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg uppercase" placeholder="GARCÍA"
-              style="text-transform: uppercase;">
-          </div>
-
-          <div class="card p-4" id="campoEmail">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Email <span
-                class="text-xs text-gray-500">(opcional)</span></label>
-            <input type="email" id="inputEmail" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="tu@email.com">
-          </div>
-
-          <div class="card p-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de consulta *</label>
-            <textarea id="inputMotivo" required rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="Describe tu situación..."></textarea>
-          </div>
-
-          <button type="submit" class="btn-primary w-full">
-            Confirmar reserva →
+      <p class="text-sm font-semibold text-gray-700 mb-3 text-center">Elige cómo pagar:</p>
+      <div class="space-y-3 mb-4">
+        <button id="btnPagarTarjeta" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>
+          <div class="text-left"><div class="text-base">💳 Pagar con tarjeta</div><div class="text-xs opacity-80">Visa, Mastercard, Amex</div></div>
+        </button>
+        <div id="wrapperBtnOxxo">
+          <button id="btnPagarOxxo" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold py-4 px-6 rounded-xl hover:from-red-600 hover:to-orange-600 transition-all shadow-md">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+            <div class="text-left"><div class="text-base">🏪 Pagar en Oxxo</div><div class="text-xs opacity-80">Genera tu voucher de pago • 24 horas</div></div>
           </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /vistaReserva -->
+
+  <!-- ════════════════════════════════════════
+       VISTA ADMIN
+  ════════════════════════════════════════ -->
+  <div id="vistaAdmin" class="hidden">
+
+    <!-- Login -->
+    <div id="adminLogin">
+      <div class="card p-6 max-w-sm mx-auto mt-12">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold">Panel Admin</h2>
+          <p class="text-sm text-gray-500 mt-1">Acceso exclusivo para personal del consultorio</p>
+        </div>
+        <form id="formLogin" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Usuario</label>
+            <input type="text" id="loginUser" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="usuario" autocomplete="username">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+            <input type="password" id="loginPass" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div id="loginError" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-semibold text-center"></div>
+          <button type="submit" id="btnLoginSubmit" class="btn-primary w-full flex items-center justify-center gap-2">
+            <span id="loginBtnText">Entrar al panel</span>
+          </button>
+          <button type="button" id="btnVolverLogin" class="btn-secondary w-full">Cancelar</button>
         </form>
       </div>
-
-      <!-- Paso 4: Confirmación -->
-      <div id="confirmacion" class="hidden">
-        <div class="text-center mb-4">
-          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd" />
-            </svg>
-          </div>
-          <h2 class="text-xl font-bold text-gray-900 mb-1">¡Cita confirmada!</h2>
-          <p class="text-sm text-gray-600">Tu reserva ha sido guardada</p>
-        </div>
-
-        <!-- FOLIO: compacto, auto-copia y leyenda -->
-        <div class="folio-display" id="folioArea">
-          <p class="text-xs font-semibold text-blue-900 mb-1">TU FOLIO DE CITA</p>
-          <div class="folio-number" id="folioDisplay">-</div>
-          <!-- CAMBIO 3: leyenda de clic para copiar -->
-          <span class="folio-click-hint" id="folioClickHint" onclick="copiarFolioManual()">
-            👆 Da clic AQUÍ para copiar tu folio
-          </span>
-          <!-- CAMBIO 2: banner de confirmación de copiado -->
-          <div class="copy-toast-banner" id="copyToastBanner">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            ¡Folio copiado en tu portapapeles!
-          </div>
-          <p class="text-xs text-blue-700 mt-1">Guarda este folio para consultar o cancelar tu cita</p>
-        </div>
-
-        <div class="card p-4 mb-4">
-          <div class="space-y-3">
-            <div>
-              <p class="text-xs text-gray-500 mb-0.5">FECHA Y HORA</p>
-              <p class="font-bold" id="resumenFecha">-</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 mb-0.5">TIPO</p>
-              <p class="font-semibold" id="resumenTipo">-</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-500 mb-0.5">TOTAL</p>
-              <p class="text-2xl font-bold text-blue-600" id="resumenPrecio">-</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Alerta de tiempo límite -->
-        <div class="card p-3 bg-amber-50 border border-amber-200 mb-4">
-          <p class="text-sm text-amber-800 text-center flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                clip-rule="evenodd" />
-            </svg>
-            <span id="mensajeTiempoLimite"><strong>Tienes 5 horas</strong> para completar tu pago</span>
-          </p>
-        </div>
-
-        <!-- Botones de pago -->
-        <p class="text-sm font-semibold text-gray-700 mb-3 text-center">Elige cómo pagar:</p>
-        <div class="space-y-3 mb-4">
-          <!-- Botón Tarjeta -->
-          <button id="btnPagarTarjeta"
-            class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path fill-rule="evenodd"
-                d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                clip-rule="evenodd" />
-            </svg>
-            <div class="text-left">
-              <div class="text-base">💳 Pagar con tarjeta</div>
-              <div class="text-xs opacity-80">Visa, Mastercard, Amex</div>
-            </div>
-          </button>
-
-          <!-- Botón Oxxo -->
-          <div id="wrapperBtnOxxo">
-            <button id="btnPagarOxxo"
-              class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold py-4 px-6 rounded-xl hover:from-red-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                  d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 5a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm0 3a1 1 0 011-1h2a1 1 0 110 2H8a1 1 0 01-1-1z"
-                  clip-rule="evenodd" />
-              </svg>
-              <div class="text-left">
-                <div class="text-base">🏪 Pagar en Oxxo</div>
-                <div class="text-xs opacity-80">Genera tu voucher de pago • 24 horas</div>
-              </div>
-            </button>
-          </div>
-        </div>
-        <!-- CAMBIO 4: Botón "Consultar mi cita" eliminado -->
-
-      </div>
-
     </div>
 
-    <!-- VISTA: Admin -->
-    <div id="vistaAdmin" class="hidden">
-      <div id="adminLogin">
-        <div class="card p-6 max-w-sm mx-auto mt-12">
-          <h2 class="text-2xl font-bold text-center mb-6">Admin</h2>
-          <form id="formLogin" class="space-y-4">
-            <input type="text" id="loginUser" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="Usuario">
-            <input type="password" id="loginPass" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg"
-              placeholder="Contraseña">
-            <button type="submit" class="btn-primary w-full">Entrar</button>
-            <button type="button" id="btnVolverLogin" class="btn-secondary w-full">Cancelar</button>
+    <!-- Panel -->
+    <div id="adminPanel" class="hidden">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Panel Admin</h2>
+          <p class="text-xs text-gray-500">Consultorio Dra. Lesso</p>
+        </div>
+        <button id="btnCerrarSesion" class="text-sm text-red-600 font-semibold flex items-center gap-1">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/></svg>
+          Salir
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <button class="tab-btn active" data-tab="resumen">📊 Resumen</button>
+        <button class="tab-btn" data-tab="pacientes">👥 Pacientes</button>
+        <button class="tab-btn" data-tab="descuentos">🏷️ Descuentos</button>
+        <button class="tab-btn" data-tab="configuracion">⚙️ Config</button>
+      </div>
+
+      <!-- Tab: Resumen -->
+      <div id="tabResumen" class="tab-content">
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="card p-4"><p class="text-xs text-gray-500 mb-1">HOY</p><p class="text-3xl font-bold" id="statHoy">0</p></div>
+          <div class="card p-4"><p class="text-xs text-gray-500 mb-1">SEMANA</p><p class="text-3xl font-bold" id="statSemana">0</p></div>
+          <div class="card p-4"><p class="text-xs text-gray-500 mb-1">PENDIENTES</p><p class="text-3xl font-bold text-orange-600" id="statPendientes">0</p></div>
+          <div class="card p-4"><p class="text-xs text-gray-500 mb-1">TOTAL</p><p class="text-3xl font-bold" id="statTotal">0</p></div>
+        </div>
+        <div class="card p-4 mb-6">
+          <h3 class="font-bold mb-4">Próxima cita</h3>
+          <div id="proximaCitaContent"><p class="text-gray-500 text-sm">No hay citas</p></div>
+        </div>
+        <div class="card p-4">
+          <div class="flex gap-2 mb-4">
+            <input type="date" id="filtroFecha" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-sm">
+            <button id="btnLimpiarFiltro" class="btn-secondary text-sm">Todas</button>
+          </div>
+          <div id="listaCitas"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Pacientes -->
+      <div id="tabPacientes" class="tab-content hidden">
+        <div class="card p-4 mb-6">
+          <h3 class="font-bold mb-4">Buscar paciente</h3>
+          <div class="flex gap-2">
+            <input type="text" id="inputBuscarPaciente" placeholder="Nombre, teléfono o folio..." class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg">
+            <button id="btnBuscarPaciente" class="btn-primary px-6">Buscar</button>
+          </div>
+        </div>
+        <div id="resultadosBusqueda" class="hidden">
+          <div class="card p-4 mb-6">
+            <div class="flex justify-between items-start mb-4">
+              <div><h3 class="text-xl font-bold" id="nombrePaciente">-</h3><p class="text-sm text-gray-600" id="contactoPaciente">-</p></div>
+              <button id="btnCerrarPaciente" class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div class="flex justify-between items-center mb-2">
+              <p class="text-sm font-semibold text-gray-700">Historial de citas</p>
+              <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-semibold" id="totalCitasPaciente">0 citas</span>
+            </div>
+            <div id="historialCitas" class="space-y-2 max-h-64 overflow-y-auto"></div>
+          </div>
+        </div>
+        <div id="sinResultados" class="hidden"><div class="card p-8 text-center"><p class="text-gray-500">No se encontraron pacientes</p></div></div>
+      </div>
+
+      <!-- Tab: Descuentos -->
+      <div id="tabDescuentos" class="tab-content hidden">
+
+        <!-- Generar nuevo código -->
+        <div class="card p-5 mb-5 border-2 border-purple-200 bg-purple-50">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 text-xl">🏷️</div>
+            <div>
+              <h3 class="font-bold text-purple-900">Generar código de descuento</h3>
+              <p class="text-xs text-purple-700">Subsecuente $600 · Válido 24 horas · Un solo uso</p>
+            </div>
+          </div>
+          <div class="space-y-3 mb-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono del paciente <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
+              <input type="tel" id="codigoTelefono" maxlength="10" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm" placeholder="4491234567">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Notas <span class="text-xs font-normal text-gray-500">(opcional)</span></label>
+              <input type="text" id="codigoNotas" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm" placeholder="Ej: Paciente Juan Pérez, revisión post-cirugía">
+            </div>
+          </div>
+          <button id="btnGenerarCodigo" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition-all flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+            Generar código ahora
+          </button>
+          <div id="errorGenerarCodigo" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"></div>
+        </div>
+
+        <!-- Lista de códigos -->
+        <div class="card p-4">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold">Códigos generados</h3>
+            <button onclick="cargarCodigos()" class="text-xs text-blue-600 font-semibold hover:underline">↻ Actualizar</button>
+          </div>
+          <div id="listaCodigos">
+            <p class="text-gray-400 text-sm text-center py-8">Cargando...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Configuración -->
+      <div id="tabConfiguracion" class="tab-content hidden">
+        <div class="card p-4 mb-6">
+          <h3 class="font-bold mb-4">Desbloquear jueves</h3>
+          <p class="text-sm text-gray-600 mb-4">Los jueves están bloqueados por defecto.</p>
+          <form id="formDesbloquearJueves" class="space-y-3">
+            <input type="date" id="fechaDesbloquearJueves" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Habilitar jueves</button>
           </form>
         </div>
+        <div class="card p-4 mb-6">
+          <h3 class="font-bold mb-4">Bloquear día específico</h3>
+          <form id="formBloquearDia" class="space-y-3">
+            <input type="date" id="fechaBloquearDia" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <input type="text" id="motivoBloqueo" placeholder="Motivo (opcional)" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Bloquear día</button>
+          </form>
+        </div>
+        <div class="card p-4"><h3 class="font-bold mb-4">Días bloqueados</h3><div id="listaDiasBloqueados"></div></div>
+        <div class="card p-4 mt-6"><h3 class="font-bold mb-4">Jueves habilitados</h3><div id="listaJuevesHabilitados"></div></div>
+        <div class="card p-4 mt-6">
+          <h3 class="font-bold mb-4">Bloquear horario específico</h3>
+          <form id="formBloquearHorario" class="space-y-3">
+            <input type="date" id="fechaBloquearHorario" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <select id="horarioBloquear" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+              <option value="">-- Selecciona un horario --</option>
+              <optgroup label="Lunes / Miércoles / Jueves / Viernes">
+                <option value="10:00:00">10:00 (Prioritaria)</option>
+                <option value="11:00:00">11:00 (General)</option>
+                <option value="11:40:00">11:40 (General)</option>
+                <option value="12:20:00">12:20 (General)</option>
+                <option value="13:00:00">13:00 (General)</option>
+                <option value="13:40:00">13:40 (General)</option>
+                <option value="14:20:00">14:20 (Prioritaria)</option>
+              </optgroup>
+              <optgroup label="Martes">
+                <option value="16:00:00">16:00 (Prioritaria)</option>
+                <option value="17:00:00">17:00 (General)</option>
+                <option value="17:40:00">17:40 (General)</option>
+                <option value="18:20:00">18:20 (General)</option>
+                <option value="19:00:00">19:00 (General)</option>
+                <option value="19:40:00">19:40 (General)</option>
+                <option value="20:20:00">20:20 (Prioritaria)</option>
+              </optgroup>
+            </select>
+            <input type="text" id="motivoBloqueoHorario" placeholder="Motivo (opcional)" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
+            <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-lg font-semibold">Bloquear horario</button>
+          </form>
+        </div>
+        <div class="card p-4 mt-6"><h3 class="font-bold mb-4">Horarios bloqueados</h3><div id="listaHorariosBloqueados"></div></div>
       </div>
+    </div><!-- /adminPanel -->
+  </div><!-- /vistaAdmin -->
 
-      <div id="adminPanel" class="hidden">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Panel Admin</h2>
-          <button id="btnCerrarSesion" class="text-sm text-red-600 font-semibold">Salir</button>
-        </div>
+</main>
 
-        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-          <button class="tab-btn active" data-tab="resumen">
-            <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-            </svg>
-            Resumen
-          </button>
-          <button class="tab-btn" data-tab="pacientes">
-            <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-            </svg>
-            Pacientes
-          </button>
-          <button class="tab-btn" data-tab="configuracion">
-            <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd"
-                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                clip-rule="evenodd" />
-            </svg>
-            Configuración
-          </button>
-        </div>
-
-        <div id="tabResumen" class="tab-content">
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">HOY</p>
-              <p class="text-3xl font-bold" id="statHoy">0</p>
-            </div>
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">SEMANA</p>
-              <p class="text-3xl font-bold" id="statSemana">0</p>
-            </div>
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">PENDIENTES</p>
-              <p class="text-3xl font-bold text-orange-600" id="statPendientes">0</p>
-            </div>
-            <div class="card p-4">
-              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
-              <p class="text-3xl font-bold" id="statTotal">0</p>
-            </div>
-          </div>
-
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Próxima cita</h3>
-            <div id="proximaCitaContent">
-              <p class="text-gray-500 text-sm">No hay citas</p>
-            </div>
-          </div>
-
-          <div class="card p-4">
-            <div class="flex gap-2 mb-4">
-              <input type="date" id="filtroFecha" class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg text-sm">
-              <button id="btnLimpiarFiltro" class="btn-secondary text-sm">Todas</button>
-            </div>
-            <div id="listaCitas"></div>
-          </div>
-        </div>
-
-        <div id="tabPacientes" class="tab-content hidden">
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Buscar paciente</h3>
-            <div class="flex gap-2">
-              <input type="text" id="inputBuscarPaciente" placeholder="Buscar por nombre, teléfono o folio..."
-                class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg">
-              <button id="btnBuscarPaciente" class="btn-primary px-6">Buscar</button>
-            </div>
-          </div>
-
-          <div id="resultadosBusqueda" class="hidden">
-            <div class="card p-4 mb-6">
-              <div class="flex justify-between items-start mb-4">
-                <div>
-                  <h3 class="text-xl font-bold" id="nombrePaciente">-</h3>
-                  <p class="text-sm text-gray-600" id="contactoPaciente">-</p>
-                </div>
-                <button id="btnCerrarPaciente" class="text-gray-400 hover:text-gray-600">✕</button>
-              </div>
-
-              <div class="mb-4">
-                <div class="flex justify-between items-center mb-2">
-                  <p class="text-sm font-semibold text-gray-700">Historial de citas</p>
-                  <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-semibold"
-                    id="totalCitasPaciente">0 citas</span>
-                </div>
-                <div id="historialCitas" class="space-y-2 max-h-64 overflow-y-auto">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="sinResultados" class="hidden">
-            <div class="card p-8 text-center">
-              <p class="text-gray-500">No se encontraron pacientes</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="tabConfiguracion" class="tab-content hidden">
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Desbloquear jueves</h3>
-            <p class="text-sm text-gray-600 mb-4">Los jueves están bloqueados por defecto. Puedes habilitarlos aquí:</p>
-            <form id="formDesbloquearJueves" class="space-y-3">
-              <input type="date" id="fechaDesbloquearJueves" required
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Habilitar
-                jueves</button>
-            </form>
-          </div>
-
-          <div class="card p-4 mb-6">
-            <h3 class="font-bold mb-4">Bloquear día específico</h3>
-            <form id="formBloquearDia" class="space-y-3">
-              <input type="date" id="fechaBloquearDia" required
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <input type="text" id="motivoBloqueo" placeholder="Motivo (opcional)"
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Bloquear
-                día</button>
-            </form>
-          </div>
-
-          <div class="card p-4">
-            <h3 class="font-bold mb-4">Días bloqueados manualmente</h3>
-            <div id="listaDiasBloqueados"></div>
-          </div>
-
-          <div class="card p-4 mt-6">
-            <h3 class="font-bold mb-4">Jueves habilitados</h3>
-            <div id="listaJuevesHabilitados"></div>
-          </div>
-
-          <div class="card p-4 mt-6">
-            <h3 class="font-bold mb-4">Bloquear horario específico</h3>
-            <p class="text-sm text-gray-600 mb-4">Bloquea un horario puntual en una fecha específica sin bloquear todo
-              el día.</p>
-            <form id="formBloquearHorario" class="space-y-3">
-              <input type="date" id="fechaBloquearHorario" required
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <select id="horarioBloquear" required class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-                <option value="">-- Selecciona un horario --</option>
-                <optgroup label="Lunes / Miércoles / Jueves / Viernes">
-                  <option value="10:00:00">10:00 (Prioritaria)</option>
-                  <option value="11:00:00">11:00 (General)</option>
-                  <option value="11:40:00">11:40 (General)</option>
-                  <option value="12:20:00">12:20 (General)</option>
-                  <option value="13:00:00">13:00 (General)</option>
-                  <option value="13:40:00">13:40 (General)</option>
-                  <option value="14:20:00">14:20 (Prioritaria)</option>
-                </optgroup>
-                <optgroup label="Martes">
-                  <option value="16:00:00">16:00 (Prioritaria)</option>
-                  <option value="17:00:00">17:00 (General)</option>
-                  <option value="17:40:00">17:40 (General)</option>
-                  <option value="18:20:00">18:20 (General)</option>
-                  <option value="19:00:00">19:00 (General)</option>
-                  <option value="19:40:00">19:40 (General)</option>
-                  <option value="20:20:00">20:20 (Prioritaria)</option>
-                </optgroup>
-              </select>
-              <input type="text" id="motivoBloqueoHorario" placeholder="Motivo (opcional)"
-                class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg">
-              <button type="submit" class="w-full bg-orange-600 text-white py-2 rounded-lg font-semibold">Bloquear
-                horario</button>
-            </form>
-          </div>
-
-          <div class="card p-4 mt-6">
-            <h3 class="font-bold mb-4">Horarios bloqueados</h3>
-            <div id="listaHorariosBloqueados"></div>
-          </div>
-        </div>
+<!-- ════════════════════════════════════════
+     MODAL: Pedir código (paciente)
+════════════════════════════════════════ -->
+<div id="modalPedirCodigo" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="text-center mb-5">
+      <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-3xl">📋</div>
+      <h3 class="text-xl font-bold text-gray-900">Solicitar código subsecuente</h3>
+      <p class="text-sm text-gray-500 mt-1">Para consultas de seguimiento a $600</p>
+    </div>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-5">
+      <p class="text-sm font-semibold text-purple-900 mb-2">📌 ¿Para quién es este código?</p>
+      <p class="text-sm text-purple-800">Para pacientes que ya tuvieron una consulta general y necesitan:</p>
+      <ul class="text-sm text-purple-700 mt-2 space-y-1">
+        <li>• Revisión de estudios o resultados</li>
+        <li>• Consulta de seguimiento del mismo mes</li>
+        <li>• Programar una cirugía (previa valoración)</li>
+      </ul>
+    </div>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+      <p class="text-sm font-bold text-amber-800 mb-1">📞 Cómo solicitar tu código:</p>
+      <div class="space-y-2 mt-2">
+        <div class="flex items-start gap-2"><span class="w-6 h-6 bg-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-900 flex-shrink-0">1</span><p class="text-sm text-amber-800">Toca el botón verde de abajo para abrir WhatsApp</p></div>
+        <div class="flex items-start gap-2"><span class="w-6 h-6 bg-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-900 flex-shrink-0">2</span><p class="text-sm text-amber-800">El mensaje ya está escrito — solo presiona "Enviar" en WhatsApp</p></div>
+        <div class="flex items-start gap-2"><span class="w-6 h-6 bg-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-900 flex-shrink-0">3</span><p class="text-sm text-amber-800">La asistente le enviará su código en breve</p></div>
+        <div class="flex items-start gap-2"><span class="w-6 h-6 bg-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-900 flex-shrink-0">4</span><p class="text-sm text-amber-800">Con ese código, agende su cita aquí mismo y aplíquelo al pagar</p></div>
       </div>
     </div>
+    <div class="mb-3">
+      <label class="block text-sm font-semibold text-gray-700 mb-1">Su nombre <span class="text-xs font-normal text-gray-400">(para el mensaje)</span></label>
+      <input type="text" id="nombreSolicitante" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="Ej: María González">
+    </div>
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-gray-700 mb-1">Su teléfono <span class="text-xs font-normal text-gray-400">(para que le respondan)</span></label>
+      <input type="tel" id="telefonoSolicitante" maxlength="10" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="4491234567">
+    </div>
+    <a id="btnEnviarSolicitudWA" href="#" target="_blank"
+       class="w-full flex items-center justify-center gap-3 bg-green-500 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-600 transition-all shadow-md mb-3 text-base">
+      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.128.558 4.127 1.534 5.857L0 24l6.335-1.508A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.773 9.773 0 01-5.003-1.374l-.36-.214-3.724.976.992-3.629-.234-.373A9.772 9.772 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+      Enviar solicitud por WhatsApp
+    </a>
+    <button onclick="cerrarModalPedirCodigo()" class="btn-secondary w-full text-sm">Cancelar</button>
+  </div>
+</div>
 
-  </main>
+<!-- ════════════════════════════════════════
+     MODAL: Código generado (admin)
+════════════════════════════════════════ -->
+<div id="modalCodigoGenerado" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="text-center mb-4">
+      <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-2 text-3xl">✅</div>
+      <h3 class="text-xl font-bold text-gray-900">¡Código generado!</h3>
+      <p class="text-sm text-gray-500">Válido por 24 horas · Un solo uso</p>
+    </div>
 
-  <script>
-    // ============================================
-    // CONFIGURACIÓN
-    // ============================================
-    const { createClient } = supabase;
+    <div class="codigo-grande mb-2" id="codigoGeneradoDisplay">SUB-XXXXX</div>
+    <p class="text-xs text-center text-gray-500 mb-1">Expira: <span id="codigoExpiraDisplay" class="font-semibold text-gray-700">-</span></p>
 
-    const supabaseClient = createClient(
-      'https://ecqjfftvvcyqpxtdcnbb.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjcWpmZnR2dmN5cXB4dGRjbmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDA5NjQsImV4cCI6MjA4MDI3Njk2NH0.hQ94vABAfutXKRB0boBet-HcnR-VW6Lin6IRUeKEl6o'
-    );
+    <!-- Botón copiar código -->
+    <button onclick="copiarCodigoGenerado()" id="btnCopiarCodigo"
+      class="w-full flex items-center justify-center gap-2 bg-blue-50 border-2 border-blue-200 text-blue-700 font-bold py-3 rounded-xl hover:bg-blue-100 transition-all mb-4">
+      <i class="far fa-copy"></i> Copiar código
+    </button>
+    <div id="copiadoCodigoBanner" class="hidden flex items-center justify-center gap-2 bg-green-100 text-green-700 font-bold text-sm py-2 rounded-lg mb-3">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      ¡Copiado!
+    </div>
 
-    const STRIPE_LINKS = {
-      normal: 'https://buy.stripe.com/eVqfZg5iq9uw3ub80ddAk03',
-      urgente: 'https://buy.stripe.com/5kQaEWaCKfSU3ub2FTdAk04',
-      subsecuente: 'https://buy.stripe.com/dRmcN44em8qs9Sz6W9dAk05',
-      normal_oxxo: 'https://buy.stripe.com/bJe00i4emcGIggX6W9dAk07'
-    };
+    <div class="bg-gray-50 rounded-xl p-4 mb-4">
+      <p class="text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">Mensaje para el paciente:</p>
+      <p class="text-sm text-gray-700 leading-relaxed" id="mensajePreview">-</p>
+    </div>
 
-    const TIEMPO_LIMITE = {
-      urgente_stripe: 2,
-      normal_stripe: 5,
-      oxxo: 24
-    };
+    <!-- Botones de envío -->
+    <div class="space-y-3">
+      <a id="btnWADirecto" href="#" target="_blank"
+        class="w-full flex items-center justify-center gap-3 bg-green-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-green-600 transition-all">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.128.558 4.127 1.534 5.857L0 24l6.335-1.508A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.773 9.773 0 01-5.003-1.374l-.36-.214-3.724.976.992-3.629-.234-.373A9.772 9.772 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+        Enviar al paciente por WhatsApp
+      </a>
+      <button onclick="copiarMensajeCompleto()" id="btnCopiarMensaje"
+        class="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-200 transition-all">
+        <i class="far fa-copy"></i> Copiar mensaje completo
+      </button>
+    </div>
+    <div id="mensajeCopiadoBanner" class="hidden mt-2 flex items-center justify-center gap-2 bg-green-100 text-green-700 font-bold text-sm py-2 rounded-lg">
+      ✅ Mensaje copiado
+    </div>
 
-    // ============================================
-    // SISTEMA DE FOLIOS
-    // ============================================
-    function generarFolio() {
-      const fecha = new Date();
-      const año = fecha.getFullYear().toString().slice(-2);
-      const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-      const dia = String(fecha.getDate()).padStart(2, '0');
-      const hora = String(fecha.getHours()).padStart(2, '0');
-      const minuto = String(fecha.getMinutes()).padStart(2, '0');
-      const segundo = String(fecha.getSeconds()).padStart(2, '0');
-      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      return `${año}${mes}${dia}-${hora}${minuto}${segundo}${random}`;
+    <button onclick="cerrarModalCodigo()" class="btn-secondary w-full mt-4 text-sm">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════
+const { createClient } = supabase;
+const supabaseClient = createClient(
+  'https://ecqjfftvvcyqpxtdcnbb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjcWpmZnR2dmN5cXB4dGRjbmJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3MDA5NjQsImV4cCI6MjA4MDI3Njk2NH0.hQ94vABAfutXKRB0boBet-HcnR-VW6Lin6IRUeKEl6o'
+);
+
+// URL de tu Edge Function — reemplaza con tu project ref real
+const EDGE_FN_URL = 'https://ecqjfftvvcyqpxtdcnbb.supabase.co/functions/v1/crear-codigo-descuento';
+
+const STRIPE_LINKS = {
+  normal:      'https://buy.stripe.com/eVqfZg5iq9uw3ub80ddAk03',
+  urgente:     'https://buy.stripe.com/5kQaEWaCKfSU3ub2FTdAk04',
+  subsecuente: 'https://buy.stripe.com/dRmcN44em8qs9Sz6W9dAk05',
+  normal_oxxo: 'https://buy.stripe.com/bJe00i4emcGIggX6W9dAk07'
+};
+
+// Número de la asistente para solicitud de códigos (pacientes)
+const WA_ASISTENTE = '524776738498';
+
+// ════════════════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════════════════
+let currentStep = 1;
+let selectedType = null;
+let selectedDate = null;
+let selectedTime = null;
+let mesActual = new Date();
+let folioGenerado = null;
+let pacienteActualForm = null;
+let timeoutBusqueda = null;
+let codigoActualAdmin = null; // código recién generado en admin
+
+// ════════════════════════════════════════════════════
+// FOLIO HELPERS
+// ════════════════════════════════════════════════════
+function generarFolio() {
+  const f = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const r = Math.floor(Math.random()*1000).toString().padStart(3,'0');
+  return `${String(f.getFullYear()).slice(-2)}${pad(f.getMonth()+1)}${pad(f.getDate())}-${pad(f.getHours())}${pad(f.getMinutes())}${pad(f.getSeconds())}${r}`;
+}
+function mostrarToastCopiado() {
+  const banner = document.getElementById('copyToastBanner');
+  const hint   = document.getElementById('folioClickHint');
+  banner.classList.add('show');
+  hint.style.display = 'none';
+  setTimeout(() => { banner.classList.remove('show'); hint.style.display = 'block'; }, 3000);
+}
+function autoCopiarFolio(folio) {
+  if (navigator.clipboard) navigator.clipboard.writeText(folio).then(mostrarToastCopiado).catch(()=>{});
+}
+window.copiarFolioManual = function() {
+  const folio = document.getElementById('folioDisplay').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(folio).then(mostrarToastCopiado).catch(()=>{ fallbackCopy(folio); mostrarToastCopiado(); });
+  } else { fallbackCopy(folio); mostrarToastCopiado(); }
+};
+function fallbackCopy(text) {
+  const el = document.createElement('textarea');
+  el.value = text; document.body.appendChild(el); el.select();
+  document.execCommand('copy'); document.body.removeChild(el);
+}
+
+// ════════════════════════════════════════════════════
+// DB HELPERS
+// ════════════════════════════════════════════════════
+async function guardarCita(cita) {
+  const { data, error } = await supabaseClient.from('citas').insert([cita]).select();
+  if (error) { alert('Error al guardar'); return null; }
+  return data[0];
+}
+async function obtenerCitas(fecha=null) {
+  let q = supabaseClient.from('citas').select('*').order('fecha').order('horario');
+  if (fecha) q = q.eq('fecha', fecha);
+  const { data } = await q; return data||[];
+}
+async function obtenerDiasBloqueados() {
+  const { data } = await supabaseClient.from('dias_bloqueados').select('*').order('fecha');
+  return data||[];
+}
+async function obtenerJuevesHabilitados() {
+  const { data } = await supabaseClient.from('jueves_habilitados').select('*').order('fecha');
+  return data||[];
+}
+async function obtenerHorariosBloqueados(fecha=null) {
+  let q = supabaseClient.from('horarios_bloqueados').select('*').order('fecha').order('horario');
+  if (fecha) q = q.eq('fecha', fecha);
+  const { data } = await q; return data||[];
+}
+async function buscarPacientePorTelefono(tel) {
+  const { data } = await supabaseClient.from('pacientes').select('*').eq('telefono',tel.trim()).single();
+  return data;
+}
+async function upsertPaciente(p) {
+  const { data, error } = await supabaseClient.from('pacientes').upsert(p,{onConflict:'telefono'}).select().single();
+  if (error) { console.error(error); return null; }
+  return data;
+}
+async function cancelarCitaDB(id) { await supabaseClient.from('citas').delete().eq('id',id); }
+async function marcarPagado(id) { await supabaseClient.from('citas').update({pagado:true}).eq('id',id); }
+async function bloquearDia(b) {
+  const { data, error } = await supabaseClient.from('dias_bloqueados').insert([b]).select();
+  if (error) { alert('Error o ya bloqueado'); return null; } return data[0];
+}
+async function desbloquearDia(id) { await supabaseClient.from('dias_bloqueados').delete().eq('id',id); }
+async function habilitarJueves(fecha) {
+  const { data, error } = await supabaseClient.from('jueves_habilitados').insert([{fecha}]).select();
+  if (error) { alert('Error o ya habilitado'); return null; } return data[0];
+}
+async function deshabilitarJueves(id) { await supabaseClient.from('jueves_habilitados').delete().eq('id',id); }
+async function bloquearHorario(b) {
+  const { data, error } = await supabaseClient.from('horarios_bloqueados').insert([b]).select();
+  if (error) { alert('Error o ya bloqueado ese horario'); return null; } return data[0];
+}
+async function desbloquearHorario(id) { await supabaseClient.from('horarios_bloqueados').delete().eq('id',id); }
+async function buscarPaciente(termino) {
+  const { data: pac } = await supabaseClient.from('pacientes').select('*')
+    .or(`nombre.ilike.%${termino}%,apellido_paterno.ilike.%${termino}%,apellido_materno.ilike.%${termino}%,telefono.ilike.%${termino}%`)
+    .order('created_at',{ascending:false});
+  if (pac && pac.length > 0) {
+    const tels = pac.map(p=>p.telefono);
+    const { data: citas } = await supabaseClient.from('citas').select('*').in('telefono',tels).order('fecha',{ascending:false});
+    return citas||[];
+  }
+  const { data: cf } = await supabaseClient.from('citas').select('*').ilike('folio',`%${termino}%`).order('fecha',{ascending:false});
+  return cf||[];
+}
+
+// ════════════════════════════════════════════════════
+// VALIDACIONES
+// ════════════════════════════════════════════════════
+const validarTelefono = t => /^[0-9]{10}$/.test(t.trim());
+const validarEmail = e => !e || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+const validarTexto = (t, n=1) => t && t.trim().length >= n;
+const sanitizar = t => t.trim().replace(/[<>"']/g,'');
+
+// ════════════════════════════════════════════════════
+// STEPS
+// ════════════════════════════════════════════════════
+function showStep(step) {
+  for (let i=1;i<=5;i++) {
+    document.getElementById(`paso${i}`)?.classList.add('hidden');
+    const ind = document.getElementById(`stepInd${i}`);
+    if (ind) {
+      ind.classList.remove('active','completed','inactive');
+      if (i<step) ind.classList.add('completed');
+      else if (i===step) ind.classList.add('active');
+      else ind.classList.add('inactive');
     }
+  }
+  if (step<=3) document.getElementById(`paso${step}`).classList.remove('hidden');
+  document.getElementById('progressBar').style.width = `${(step/3)*100}%`;
+  // Mostrar/ocultar banner subsecuente solo en paso 1
+  document.getElementById('bannerSubsecuente').classList.toggle('hidden', step !== 1);
+  currentStep = step;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.addEventListener('DOMContentLoaded', () => showStep(1));
 
-    // Estado
-    let currentStep = 1;
-    let selectedType = null;
-    let selectedDate = null;
-    let selectedTime = null;
-    let mesActual = new Date();
-    let folioGenerado = null;
-    let pacienteActualForm = null;
-    let timeoutBusqueda = null;
-
-    // ============================================
-    // CAMBIO 2 y 3: Función de copiar folio
-    // ============================================
-    function mostrarToastCopiado() {
-      const banner = document.getElementById('copyToastBanner');
-      const hint = document.getElementById('folioClickHint');
-      banner.classList.add('show');
-      hint.style.display = 'none';
-      setTimeout(() => {
-        banner.classList.remove('show');
-        hint.style.display = 'block';
-      }, 3000);
+// ════════════════════════════════════════════════════
+// CALENDARIO
+// ════════════════════════════════════════════════════
+async function getAvailabilityForDate(fechaStr) {
+  const dow = new Date(fechaStr+'T00:00:00').getDay();
+  let slots = [];
+  if ([1,3,4,5].includes(dow)) slots = ['11:00:00','11:40:00','12:20:00','13:00:00','13:40:00','10:00:00','14:20:00'];
+  else if (dow===2) slots = ['17:00:00','17:40:00','18:20:00','19:00:00','19:40:00','16:00:00','20:20:00'];
+  if (!slots.length) return 0;
+  const citas = await obtenerCitas(fechaStr);
+  const bloq  = (await obtenerHorariosBloqueados(fechaStr)).map(h=>h.horario);
+  return slots.filter(h => !citas.map(c=>c.horario).includes(h) && !bloq.includes(h)).length;
+}
+async function renderCalendar() {
+  const y=mesActual.getFullYear(), m=mesActual.getMonth();
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('mesActual2').textContent = `${meses[m]} ${y}`;
+  document.getElementById('mesNombre').textContent  = `${meses[m]} ${y}`;
+  const firstDay = new Date(y,m,1).getDay();
+  const lastDate = new Date(y,m+1,0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const bloqueados = (await obtenerDiasBloqueados()).map(b=>b.fecha);
+  const juevesOK  = (await obtenerJuevesHabilitados()).map(j=>j.fecha);
+  const container = document.getElementById('calendarioDias');
+  container.innerHTML = '';
+  for (let i=0;i<firstDay;i++) container.appendChild(document.createElement('div'));
+  for (let d=1;d<=lastDate;d++) {
+    const fecha = new Date(y,m,d); fecha.setHours(0,0,0,0);
+    const dow   = fecha.getDay();
+    const fechaStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cell  = document.createElement('div');
+    cell.textContent = d; cell.className = 'day-cell';
+    if (fecha<today || dow===0 || dow===6) {
+      cell.classList.add('disabled');
+    } else if (bloqueados.includes(fechaStr) || (dow===4 && !juevesOK.includes(fechaStr))) {
+      cell.classList.add('blocked');
+    } else {
+      const libres = await getAvailabilityForDate(fechaStr);
+      if (libres===0) cell.classList.add('availability-none');
+      else if (libres<=2) cell.classList.add('availability-low');
+      else cell.classList.add('availability-full');
+      cell.addEventListener('click', () => {
+        selectedDate = fechaStr;
+        document.querySelectorAll('.day-cell').forEach(c=>c.classList.remove('selected'));
+        cell.classList.add('selected');
+        setTimeout(()=>showStep(2),300);
+        renderHorarios();
+      });
     }
+    container.appendChild(cell);
+  }
+}
+document.getElementById('prevMes').addEventListener('click', ()=>{mesActual.setMonth(mesActual.getMonth()-1);renderCalendar();});
+document.getElementById('nextMes').addEventListener('click', ()=>{mesActual.setMonth(mesActual.getMonth()+1);renderCalendar();});
 
-    // Auto-copia al mostrar el folio
-    function autoCopiarFolio(folio) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(folio).then(() => {
-          mostrarToastCopiado();
-        }).catch(() => {
-          // Fallback silencioso
+// ════════════════════════════════════════════════════
+// HORARIOS
+// ════════════════════════════════════════════════════
+async function renderHorarios() {
+  document.getElementById('fechaSeleccionada').textContent = selectedDate;
+  const ocupados = (await obtenerCitas(selectedDate)).map(c=>c.horario);
+  const bloq     = (await obtenerHorariosBloqueados(selectedDate)).map(h=>h.horario);
+  const dow = new Date(selectedDate+'T00:00:00').getDay();
+  let gen=[], urg=[];
+  if ([1,3,4,5].includes(dow)) { gen=['11:00:00','11:40:00','12:20:00','13:00:00','13:40:00']; urg=['10:00:00','14:20:00']; }
+  else if (dow===2) { gen=['17:00:00','17:40:00','18:20:00','19:00:00','19:40:00']; urg=['16:00:00','20:20:00']; }
+  function renderSlots(slots, containerId, tipo) {
+    const c = document.getElementById(containerId); c.innerHTML='';
+    if (!slots.length) { c.innerHTML='<p class="col-span-full text-center text-gray-500">Sin horarios</p>'; return; }
+    slots.forEach(h => {
+      const slot = document.createElement('div');
+      slot.textContent = h.substring(0,5); slot.className='time-slot';
+      if (ocupados.includes(h)||bloq.includes(h)) { slot.classList.add('disabled'); }
+      else {
+        slot.addEventListener('click',()=>{
+          selectedTime=h; selectedType=tipo;
+          document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));
+          slot.classList.add('selected');
+          setTimeout(()=>showStep(3),300);
         });
       }
-    }
-
-    // Copia manual al hacer clic en la leyenda
-    window.copiarFolioManual = function() {
-      const folio = document.getElementById('folioDisplay').textContent;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(folio).then(() => {
-          mostrarToastCopiado();
-        }).catch(() => {
-          // Fallback para dispositivos que no soportan clipboard API
-          const el = document.createElement('textarea');
-          el.value = folio;
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand('copy');
-          document.body.removeChild(el);
-          mostrarToastCopiado();
-        });
-      } else {
-        // Fallback
-        const el = document.createElement('textarea');
-        el.value = folio;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        mostrarToastCopiado();
-      }
-    };
-
-    // ============================================
-    // FUNCIONES DB
-    // ============================================
-    async function guardarCita(cita) {
-      const { data, error } = await supabaseClient.from('citas').insert([cita]).select();
-      if (error) { alert('Error al guardar'); return null; }
-      return data[0];
-    }
-
-    async function obtenerCitas(fecha = null) {
-      let query = supabaseClient.from('citas').select('*').order('fecha').order('horario');
-      if (fecha) query = query.eq('fecha', fecha);
-      const { data } = await query;
-      return data || [];
-    }
-
-    async function obtenerDiasBloqueados() {
-      const { data } = await supabaseClient.from('dias_bloqueados').select('*').order('fecha');
-      return data || [];
-    }
-
-    async function obtenerJuevesHabilitados() {
-      const { data } = await supabaseClient.from('jueves_habilitados').select('*').order('fecha');
-      return data || [];
-    }
-
-    async function buscarPacientePorTelefono(telefono) {
-      const { data } = await supabaseClient
-        .from('pacientes')
-        .select('*')
-        .eq('telefono', telefono.trim())
-        .single();
-      return data;
-    }
-
-    async function upsertPaciente(paciente) {
-      const { data, error } = await supabaseClient
-        .from('pacientes')
-        .upsert(paciente, { onConflict: 'telefono' })
-        .select()
-        .single();
-      if (error) {
-        console.error('Error al guardar paciente:', error);
-        return null;
-      }
-      return data;
-    }
-
-    async function cancelarCitaDB(id) {
-      await supabaseClient.from('citas').delete().eq('id', id);
-    }
-
-    async function marcarPagado(id) {
-      await supabaseClient.from('citas').update({ pagado: true }).eq('id', id);
-    }
-
-    async function bloquearDia(bloqueo) {
-      const { data, error } = await supabaseClient.from('dias_bloqueados').insert([bloqueo]).select();
-      if (error) { alert('Error o ya bloqueado'); return null; }
-      return data[0];
-    }
-
-    async function desbloquearDia(id) {
-      await supabaseClient.from('dias_bloqueados').delete().eq('id', id);
-    }
-
-    async function habilitarJueves(fecha) {
-      const { data, error } = await supabaseClient.from('jueves_habilitados').insert([{ fecha }]).select();
-      if (error) { alert('Error o ya habilitado'); return null; }
-      return data[0];
-    }
-
-    async function deshabilitarJueves(id) {
-      await supabaseClient.from('jueves_habilitados').delete().eq('id', id);
-    }
-
-    async function obtenerHorariosBloqueados(fecha = null) {
-      let query = supabaseClient.from('horarios_bloqueados').select('*').order('fecha').order('horario');
-      if (fecha) query = query.eq('fecha', fecha);
-      const { data } = await query;
-      return data || [];
-    }
-
-    async function bloquearHorario(bloqueo) {
-      const { data, error } = await supabaseClient.from('horarios_bloqueados').insert([bloqueo]).select();
-      if (error) { alert('Error o ya bloqueado ese horario'); return null; }
-      return data[0];
-    }
-
-    async function desbloquearHorario(id) {
-      await supabaseClient.from('horarios_bloqueados').delete().eq('id', id);
-    }
-
-    async function buscarPaciente(termino) {
-      const { data: pacientes } = await supabaseClient
-        .from('pacientes')
-        .select('*')
-        .or(`nombre.ilike.%${termino}%,apellido_paterno.ilike.%${termino}%,apellido_materno.ilike.%${termino}%,telefono.ilike.%${termino}%`)
-        .order('created_at', { ascending: false });
-
-      if (pacientes && pacientes.length > 0) {
-        const telefonos = pacientes.map(p => p.telefono);
-        const { data: citas } = await supabaseClient
-          .from('citas')
-          .select('*')
-          .in('telefono', telefonos)
-          .order('fecha', { ascending: false });
-        return citas || [];
-      }
-
-      const { data: citasPorFolio } = await supabaseClient
-        .from('citas')
-        .select('*')
-        .ilike('folio', `%${termino}%`)
-        .order('fecha', { ascending: false });
-
-      return citasPorFolio || [];
-    }
-
-    // ============================================
-    // VALIDACIONES
-    // ============================================
-    function validarTelefono(telefono) {
-      const regex = /^[0-9]{10}$/;
-      return regex.test(telefono.trim());
-    }
-
-    function validarEmail(email) {
-      if (!email) return true;
-      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return regex.test(email);
-    }
-
-    function validarTexto(texto, minLength = 1) {
-      return texto && texto.trim().length >= minLength;
-    }
-
-    function sanitizarTexto(texto) {
-      return texto.trim().replace(/[<>"']/g, '');
-    }
-
-    // ============================================
-    // UI STEPS
-    // ============================================
-    function showStep(step) {
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById(`paso${i}`)?.classList.add('hidden');
-        const ind = document.getElementById(`stepInd${i}`);
-        if (ind) {
-          ind.classList.remove('active', 'completed', 'inactive');
-          if (i < step) ind.classList.add('completed');
-          else if (i === step) ind.classList.add('active');
-          else ind.classList.add('inactive');
-        }
-      }
-      if (step <= 3) document.getElementById(`paso${step}`).classList.remove('hidden');
-      const progress = (step / 3) * 100;
-      document.getElementById('progressBar').style.width = `${progress}%`;
-      currentStep = step;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      showStep(1);
+      c.appendChild(slot);
     });
+  }
+  renderSlots(gen,'horariosGeneralContainer','normal');
+  renderSlots(urg,'horariosUrgentContainer','urgente');
+}
 
-    // ============================================
-    // CALENDARIO
-    // ============================================
-    async function getAvailabilityForDate(fechaStr) {
-      const dateObj = new Date(fechaStr + 'T00:00:00');
-      const diaSemana = dateObj.getDay();
-
-      let horariosDisponibles = [];
-
-      if (diaSemana === 1 || diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
-        horariosDisponibles = ['11:00:00', '11:40:00', '12:20:00', '13:00:00', '13:40:00', '10:00:00', '14:20:00'];
-      } else if (diaSemana === 2) {
-        horariosDisponibles = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00', '16:00:00', '20:20:00'];
-      }
-
-      if (horariosDisponibles.length === 0) return 0;
-
-      const citas = await obtenerCitas(fechaStr);
-      const ocupados = citas.map(c => c.horario);
-
-      const horariosBloqueadosData = await obtenerHorariosBloqueados(fechaStr);
-      const horariosBloqueados = horariosBloqueadosData.map(h => h.horario);
-
-      const libres = horariosDisponibles.filter(h => !ocupados.includes(h) && !horariosBloqueados.includes(h)).length;
-
-      return libres;
-    }
-
-    async function renderCalendar() {
-      const year = mesActual.getFullYear();
-      const month = mesActual.getMonth();
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-      document.getElementById('mesActual2').textContent = `${meses[month]} ${year}`;
-      document.getElementById('mesNombre').textContent = `${meses[month]} ${year}`;
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const lastDate = new Date(year, month + 1, 0).getDate();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const bloqueados = await obtenerDiasBloqueados();
-      const fechasBloqueadas = bloqueados.map(b => b.fecha);
-
-      const juevesHabilitados = await obtenerJuevesHabilitados();
-      const fechasJuevesHabilitados = juevesHabilitados.map(j => j.fecha);
-
-      const container = document.getElementById('calendarioDias');
-      container.innerHTML = '';
-
-      for (let i = 0; i < firstDay; i++) container.appendChild(document.createElement('div'));
-
-      for (let d = 1; d <= lastDate; d++) {
-        const fecha = new Date(year, month, d);
-        fecha.setHours(0, 0, 0, 0);
-        const dow = fecha.getDay();
-        const isWeekend = dow === 0 || dow === 6;
-        const isPast = fecha < today;
-        const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isBlocked = fechasBloqueadas.includes(fechaStr);
-
-        const isThursday = dow === 4;
-        const isThursdayEnabled = fechasJuevesHabilitados.includes(fechaStr);
-        const isThursdayBlocked = isThursday && !isThursdayEnabled;
-
-        const cell = document.createElement('div');
-        cell.textContent = d;
-        cell.className = 'day-cell';
-
-        if (isPast || isWeekend) {
-          cell.classList.add('disabled');
-        } else if (isBlocked || isThursdayBlocked) {
-          cell.classList.add('blocked');
-        } else {
-          const libres = await getAvailabilityForDate(fechaStr);
-
-          if (libres === 0) {
-            cell.classList.add('availability-none');
-          } else if (libres <= 2) {
-            cell.classList.add('availability-low');
-          } else {
-            cell.classList.add('availability-full');
-          }
-
-          cell.addEventListener('click', () => {
-            selectedDate = fechaStr;
-            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
-            cell.classList.add('selected');
-            setTimeout(() => showStep(2), 300);
-            renderHorarios();
-          });
-        }
-
-        container.appendChild(cell);
-      }
-    }
-
-    document.getElementById('prevMes').addEventListener('click', () => {
-      mesActual.setMonth(mesActual.getMonth() - 1);
-      renderCalendar();
-    });
-
-    document.getElementById('nextMes').addEventListener('click', () => {
-      mesActual.setMonth(mesActual.getMonth() + 1);
-      renderCalendar();
-    });
-
-    // ============================================
-    // HORARIOS
-    // ============================================
-    async function renderHorarios() {
-      document.getElementById('fechaSeleccionada').textContent = selectedDate;
-
-      const citas = await obtenerCitas(selectedDate);
-      const ocupados = citas.map(c => c.horario);
-
-      const horariosBloqueadosData = await obtenerHorariosBloqueados(selectedDate);
-      const horariosBloqueados = horariosBloqueadosData.map(h => h.horario);
-
-      const dateObj = new Date(selectedDate + 'T00:00:00');
-      const diaSemana = dateObj.getDay();
-
-      let horariosGeneral = [];
-      let horariosUrgent = [];
-
-      if (diaSemana === 1 || diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
-        horariosGeneral = ['11:00:00', '11:40:00', '12:20:00', '13:00:00', '13:40:00'];
-        horariosUrgent = ['10:00:00', '14:20:00'];
-      } else if (diaSemana === 2) {
-        horariosGeneral = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00'];
-        horariosUrgent = ['16:00:00', '20:20:00'];
-      }
-
-      const containerGeneral = document.getElementById('horariosGeneralContainer');
-      containerGeneral.innerHTML = '';
-
-      if (horariosGeneral.length === 0) {
-        containerGeneral.innerHTML = '<p class="col-span-full text-center text-gray-500">No hay horarios disponibles</p>';
-      } else {
-        horariosGeneral.forEach(h => {
-          const slot = document.createElement('div');
-          slot.textContent = h.substring(0, 5);
-          slot.className = 'time-slot';
-
-          if (ocupados.includes(h) || horariosBloqueados.includes(h)) {
-            slot.classList.add('disabled');
-            if (horariosBloqueados.includes(h)) slot.title = 'Horario bloqueado';
-          } else {
-            slot.addEventListener('click', () => {
-              selectedTime = h;
-              selectedType = 'normal';
-              document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-              slot.classList.add('selected');
-              setTimeout(() => showStep(3), 300);
-            });
-          }
-          containerGeneral.appendChild(slot);
-        });
-      }
-
-      const containerUrgent = document.getElementById('horariosUrgentContainer');
-      containerUrgent.innerHTML = '';
-
-      if (horariosUrgent.length === 0) {
-        containerUrgent.innerHTML = '<p class="col-span-full text-center text-gray-500">No hay horarios disponibles</p>';
-      } else {
-        horariosUrgent.forEach(h => {
-          const slot = document.createElement('div');
-          slot.textContent = h.substring(0, 5);
-          slot.className = 'time-slot';
-
-          if (ocupados.includes(h) || horariosBloqueados.includes(h)) {
-            slot.classList.add('disabled');
-            if (horariosBloqueados.includes(h)) slot.title = 'Horario bloqueado';
-          } else {
-            slot.addEventListener('click', () => {
-              selectedTime = h;
-              selectedType = 'urgente';
-              document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-              slot.classList.add('selected');
-              setTimeout(() => showStep(3), 300);
-            });
-          }
-          containerUrgent.appendChild(slot);
-        });
-      }
-    }
-
-    // ============================================
-    // PASO 3: AUTOCOMPLETADO
-    // ============================================
-    document.getElementById('inputTelefono').addEventListener('input', async (e) => {
-      const telefono = e.target.value.trim();
-
-      if (timeoutBusqueda) clearTimeout(timeoutBusqueda);
-
+// ════════════════════════════════════════════════════
+// AUTOCOMPLETADO TELÉFONO
+// ════════════════════════════════════════════════════
+document.getElementById('inputTelefono').addEventListener('input', async e=>{
+  const tel = e.target.value.trim();
+  if (timeoutBusqueda) clearTimeout(timeoutBusqueda);
+  document.getElementById('indicadorBusqueda').classList.add('hidden');
+  document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
+  if (tel.length===10) {
+    document.getElementById('indicadorBusqueda').classList.remove('hidden');
+    timeoutBusqueda = setTimeout(async()=>{
+      const p = await buscarPacientePorTelefono(tel);
       document.getElementById('indicadorBusqueda').classList.add('hidden');
-      document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
-
-      if (telefono.length === 10) {
-        document.getElementById('indicadorBusqueda').classList.remove('hidden');
-
-        timeoutBusqueda = setTimeout(async () => {
-          const paciente = await buscarPacientePorTelefono(telefono);
-
-          document.getElementById('indicadorBusqueda').classList.add('hidden');
-
-          if (paciente) {
-            pacienteActualForm = paciente;
-            document.getElementById('mensajePacienteEncontrado').classList.remove('hidden');
-
-            document.getElementById('inputNombre').value = paciente.nombre;
-            document.getElementById('inputApellidoPaterno').value = paciente.apellido_paterno;
-            document.getElementById('inputApellidoMaterno').value = paciente.apellido_materno;
-            document.getElementById('inputEmail').value = paciente.email || '';
-
-            document.getElementById('inputNombre').readOnly = true;
-            document.getElementById('inputApellidoPaterno').readOnly = true;
-            document.getElementById('inputApellidoMaterno').readOnly = true;
-
-            document.getElementById('campoNombre').classList.add('opacity-75');
-            document.getElementById('campoApellidoPaterno').classList.add('opacity-75');
-            document.getElementById('campoApellidoMaterno').classList.add('opacity-75');
-
-            document.getElementById('inputMotivo').focus();
-          } else {
-            pacienteActualForm = null;
-            document.getElementById('inputNombre').value = '';
-            document.getElementById('inputApellidoPaterno').value = '';
-            document.getElementById('inputApellidoMaterno').value = '';
-            document.getElementById('inputEmail').value = '';
-
-            document.getElementById('inputNombre').readOnly = false;
-            document.getElementById('inputApellidoPaterno').readOnly = false;
-            document.getElementById('inputApellidoMaterno').readOnly = false;
-
-            document.getElementById('campoNombre').classList.remove('opacity-75');
-            document.getElementById('campoApellidoPaterno').classList.remove('opacity-75');
-            document.getElementById('campoApellidoMaterno').classList.remove('opacity-75');
-          }
-        }, 500);
-      }
-    });
-
-    // ============================================
-    // FORM SUBMIT
-    // ============================================
-    document.getElementById('formDatos').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const telefono = document.getElementById('inputTelefono').value.trim();
-      const nombre = document.getElementById('inputNombre').value.trim();
-      const apellidoPaterno = document.getElementById('inputApellidoPaterno').value.trim();
-      const apellidoMaterno = document.getElementById('inputApellidoMaterno').value.trim();
-      const email = document.getElementById('inputEmail').value.trim();
-      const motivo = document.getElementById('inputMotivo').value.trim();
-
-      if (!validarTelefono(telefono)) {
-        alert('❌ El teléfono debe tener exactamente 10 dígitos numéricos');
-        return;
-      }
-      if (!validarTexto(nombre, 2)) {
-        alert('❌ El nombre debe tener al menos 2 caracteres');
-        return;
-      }
-      if (!validarTexto(apellidoPaterno, 2)) {
-        alert('❌ El apellido paterno debe tener al menos 2 caracteres');
-        return;
-      }
-      if (!validarTexto(apellidoMaterno, 2)) {
-        alert('❌ El apellido materno debe tener al menos 2 caracteres');
-        return;
-      }
-      if (email && !validarEmail(email)) {
-        alert('❌ El formato del email no es válido');
-        return;
-      }
-      if (!validarTexto(motivo, 10)) {
-        alert('❌ El motivo de consulta debe tener al menos 10 caracteres');
-        return;
-      }
-
-      const nombreSanitizado = sanitizarTexto(nombre).toUpperCase();
-      const apellidoPaternoSanitizado = sanitizarTexto(apellidoPaterno).toUpperCase();
-      const apellidoMaternoSanitizado = sanitizarTexto(apellidoMaterno).toUpperCase();
-      const emailSanitizado = email ? sanitizarTexto(email).toLowerCase() : null;
-      const motivoSanitizado = sanitizarTexto(motivo);
-
-      folioGenerado = generarFolio();
-
-      const paciente = await upsertPaciente({
-        telefono,
-        nombre: nombreSanitizado,
-        apellido_paterno: apellidoPaternoSanitizado,
-        apellido_materno: apellidoMaternoSanitizado,
-        email: emailSanitizado
-      });
-
-      if (!paciente) {
-        alert('❌ Error al guardar los datos del paciente. Intenta de nuevo.');
-        return;
-      }
-
-      const cita = {
-        paciente_id: paciente.id,
-        folio: folioGenerado,
-        nombre: `${nombreSanitizado} ${apellidoPaternoSanitizado} ${apellidoMaternoSanitizado}`,
-        telefono,
-        email: emailSanitizado,
-        motivo: motivoSanitizado,
-        fecha: selectedDate,
-        horario: selectedTime,
-        tipo: selectedType,
-        pagado: false,
-        metodo_pago: 'stripe'
-      };
-
-      const saved = await guardarCita(cita);
-      if (saved) {
-        const citaId = saved.id;
-        const precios = { normal: '$1,100', urgente: '$1,600', video: '$600' };
-        const tipos = { normal: 'Consulta General', urgente: 'Consulta Prioritaria', video: 'Consulta Subsecuente' };
-
-        // Mostrar folio
-        document.getElementById('folioDisplay').textContent = folioGenerado;
-        document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0, 5)}`;
-        document.getElementById('resumenTipo').textContent = tipos[selectedType];
-        document.getElementById('resumenPrecio').textContent = precios[selectedType];
-
-        // CAMBIO 4: Oxxo y mensaje según tipo
-        const wrapperOxxo = document.getElementById('wrapperBtnOxxo');
-        if (selectedType === 'urgente') {
-          wrapperOxxo.classList.add('hidden');
-          document.getElementById('mensajeTiempoLimite').innerHTML =
-            `<strong>Tienes 2 horas</strong> para completar tu pago con tarjeta`;
-        } else {
-          wrapperOxxo.classList.remove('hidden');
-          document.getElementById('mensajeTiempoLimite').innerHTML =
-            `<strong>Tienes 5 horas</strong> para completar tu pago (tarjeta u Oxxo)`;
-        }
-
-        document.getElementById('btnPagarTarjeta').onclick = async () => {
-          await supabaseClient.from('citas').update({ metodo_pago: 'stripe' }).eq('id', citaId);
-          const url = `${STRIPE_LINKS[selectedType]}?client_reference_id=${folioGenerado}`;
-          window.open(url, '_blank');
-        };
-
-        document.getElementById('btnPagarOxxo').onclick = async () => {
-          await supabaseClient.from('citas').update({ metodo_pago: 'oxxo' }).eq('id', citaId);
-          const url = `${STRIPE_LINKS['normal_oxxo']}?client_reference_id=${folioGenerado}`;
-          window.open(url, '_blank');
-        };
-
-        // CAMBIO 4: Mostrar confirmación y scroll al top
-        document.getElementById('paso3').classList.add('hidden');
-        document.getElementById('confirmacion').classList.remove('hidden');
-
-        // CAMBIO 4: Scroll al inicio ANTES de auto-copiar
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // CAMBIO 2: Auto-copiar folio al portapapeles
-        setTimeout(() => {
-          autoCopiarFolio(folioGenerado);
-        }, 600);
-
-        document.getElementById('formDatos').reset();
-        pacienteActualForm = null;
-        document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
-
-        document.getElementById('inputNombre').readOnly = false;
-        document.getElementById('inputApellidoPaterno').readOnly = false;
-        document.getElementById('inputApellidoMaterno').readOnly = false;
-        document.getElementById('campoNombre').classList.remove('opacity-75');
-        document.getElementById('campoApellidoPaterno').classList.remove('opacity-75');
-        document.getElementById('campoApellidoMaterno').classList.remove('opacity-75');
-      }
-    });
-
-    // ============================================
-    // NAVEGACIÓN
-    // ============================================
-    document.getElementById('btnBack2').addEventListener('click', () => showStep(1));
-    document.getElementById('btnBack3').addEventListener('click', () => showStep(2));
-
-    // ============================================
-    // ADMIN
-    // ============================================
-    document.getElementById('btnAdmin').addEventListener('click', () => {
-      document.getElementById('vistaReserva').classList.add('hidden');
-      document.getElementById('vistaAdmin').classList.remove('hidden');
-    });
-
-    document.getElementById('btnVolverLogin').addEventListener('click', () => {
-      document.getElementById('vistaAdmin').classList.add('hidden');
-      document.getElementById('vistaReserva').classList.remove('hidden');
-    });
-
-    async function validarAdminCredenciales(usuario, contrasena) {
-      try {
-        const { data, error } = await supabaseClient.rpc('check_admin_credentials', {
-          p_username: usuario,
-          p_password: contrasena
-        });
-
-        if (error) {
-          console.error('RPC error validando credenciales:', error);
-          return false;
-        }
-
-        if (data === true || data === 't' || data === 1) return true;
-        if (Array.isArray(data) && data.length > 0) {
-          const v = data[0];
-          if (v === true) return true;
-          const val = Object.values(v)[0];
-          return !!val;
-        }
-
-        return false;
-      } catch (err) {
-        console.error('Error validando credenciales:', err);
-        return false;
-      }
-    }
-
-    document.getElementById('formLogin').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const user = document.getElementById('loginUser').value.trim();
-      const pass = document.getElementById('loginPass').value;
-
-      if (!user || !pass) {
-        alert('⚠️ Completa usuario y contraseña');
-        return;
-      }
-
-      const credencialesValidas = await validarAdminCredenciales(user, pass);
-
-      if (credencialesValidas) {
-        document.getElementById('adminLogin').classList.add('hidden');
-        document.getElementById('adminPanel').classList.remove('hidden');
-        document.getElementById('loginUser').value = '';
-        document.getElementById('loginPass').value = '';
-        await cargarAdmin();
+      if (p) {
+        pacienteActualForm=p;
+        document.getElementById('mensajePacienteEncontrado').classList.remove('hidden');
+        document.getElementById('inputNombre').value=p.nombre;
+        document.getElementById('inputApellidoPaterno').value=p.apellido_paterno;
+        document.getElementById('inputApellidoMaterno').value=p.apellido_materno;
+        document.getElementById('inputEmail').value=p.email||'';
+        ['inputNombre','inputApellidoPaterno','inputApellidoMaterno'].forEach(id=>document.getElementById(id).readOnly=true);
+        ['campoNombre','campoApellidoPaterno','campoApellidoMaterno'].forEach(id=>document.getElementById(id).classList.add('opacity-75'));
+        document.getElementById('inputMotivo').focus();
       } else {
-        alert('❌ Usuario o contraseña incorrectos');
+        pacienteActualForm=null;
+        ['inputNombre','inputApellidoPaterno','inputApellidoMaterno','inputEmail'].forEach(id=>document.getElementById(id).value='');
+        ['inputNombre','inputApellidoPaterno','inputApellidoMaterno'].forEach(id=>document.getElementById(id).readOnly=false);
+        ['campoNombre','campoApellidoPaterno','campoApellidoMaterno'].forEach(id=>document.getElementById(id).classList.remove('opacity-75'));
       }
+    },500);
+  }
+});
+
+// ════════════════════════════════════════════════════
+// FORM SUBMIT
+// ════════════════════════════════════════════════════
+document.getElementById('formDatos').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const tel  = document.getElementById('inputTelefono').value.trim();
+  const nom  = document.getElementById('inputNombre').value.trim();
+  const ap   = document.getElementById('inputApellidoPaterno').value.trim();
+  const am   = document.getElementById('inputApellidoMaterno').value.trim();
+  const email= document.getElementById('inputEmail').value.trim();
+  const mot  = document.getElementById('inputMotivo').value.trim();
+  if (!validarTelefono(tel))       { alert('❌ El teléfono debe tener 10 dígitos'); return; }
+  if (!validarTexto(nom,2))        { alert('❌ El nombre debe tener al menos 2 caracteres'); return; }
+  if (!validarTexto(ap,2))         { alert('❌ El apellido paterno debe tener al menos 2 caracteres'); return; }
+  if (!validarTexto(am,2))         { alert('❌ El apellido materno debe tener al menos 2 caracteres'); return; }
+  if (!validarEmail(email))        { alert('❌ El email no es válido'); return; }
+  if (!validarTexto(mot,10))       { alert('❌ El motivo debe tener al menos 10 caracteres'); return; }
+  const nomU=sanitizar(nom).toUpperCase(), apU=sanitizar(ap).toUpperCase(), amU=sanitizar(am).toUpperCase();
+  const emailS=email?sanitizar(email).toLowerCase():null;
+  folioGenerado = generarFolio();
+  const paciente = await upsertPaciente({telefono:tel,nombre:nomU,apellido_paterno:apU,apellido_materno:amU,email:emailS});
+  if (!paciente) { alert('❌ Error al guardar paciente. Intenta de nuevo.'); return; }
+  const cita = { paciente_id:paciente.id, folio:folioGenerado, nombre:`${nomU} ${apU} ${amU}`, telefono:tel, email:emailS, motivo:sanitizar(mot), fecha:selectedDate, horario:selectedTime, tipo:selectedType, pagado:false, metodo_pago:'stripe' };
+  const saved = await guardarCita(cita);
+  if (!saved) return;
+  const citaId=saved.id;
+  const precios={normal:'$1,100',urgente:'$1,600',video:'$600'};
+  const tipos={normal:'Consulta General',urgente:'Consulta Prioritaria',video:'Consulta Subsecuente'};
+  document.getElementById('folioDisplay').textContent  = folioGenerado;
+  document.getElementById('resumenFecha').textContent  = `${selectedDate} • ${selectedTime.substring(0,5)}`;
+  document.getElementById('resumenTipo').textContent   = tipos[selectedType];
+  document.getElementById('resumenPrecio').textContent = precios[selectedType];
+  const wrapperOxxo = document.getElementById('wrapperBtnOxxo');
+  if (selectedType==='urgente') {
+    wrapperOxxo.classList.add('hidden');
+    document.getElementById('mensajeTiempoLimite').innerHTML='<strong>Tienes 2 horas</strong> para completar tu pago con tarjeta';
+  } else {
+    wrapperOxxo.classList.remove('hidden');
+    document.getElementById('mensajeTiempoLimite').innerHTML='<strong>Tienes 5 horas</strong> para completar tu pago';
+  }
+  document.getElementById('btnPagarTarjeta').onclick = async()=>{
+    await supabaseClient.from('citas').update({metodo_pago:'stripe'}).eq('id',citaId);
+    window.open(`${STRIPE_LINKS[selectedType]}?client_reference_id=${folioGenerado}`,'_blank');
+  };
+  document.getElementById('btnPagarOxxo').onclick = async()=>{
+    await supabaseClient.from('citas').update({metodo_pago:'oxxo'}).eq('id',citaId);
+    window.open(`${STRIPE_LINKS['normal_oxxo']}?client_reference_id=${folioGenerado}`,'_blank');
+  };
+  document.getElementById('paso3').classList.add('hidden');
+  document.getElementById('confirmacion').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>autoCopiarFolio(folioGenerado),600);
+  document.getElementById('formDatos').reset();
+  pacienteActualForm=null;
+  document.getElementById('mensajePacienteEncontrado').classList.add('hidden');
+  ['inputNombre','inputApellidoPaterno','inputApellidoMaterno'].forEach(id=>document.getElementById(id).readOnly=false);
+  ['campoNombre','campoApellidoPaterno','campoApellidoMaterno'].forEach(id=>document.getElementById(id).classList.remove('opacity-75'));
+});
+
+// ════════════════════════════════════════════════════
+// NAVEGACIÓN PASOS
+// ════════════════════════════════════════════════════
+document.getElementById('btnBack2').addEventListener('click',()=>showStep(1));
+document.getElementById('btnBack3').addEventListener('click',()=>showStep(2));
+
+// ════════════════════════════════════════════════════
+// MODAL PEDIR CÓDIGO (paciente público)
+// ════════════════════════════════════════════════════
+window.abrirModalPedirCodigo = function() {
+  document.getElementById('modalPedirCodigo').classList.remove('hidden');
+  document.getElementById('nombreSolicitante').value = '';
+  document.getElementById('telefonoSolicitante').value = '';
+  actualizarLinkSolicitud();
+};
+window.cerrarModalPedirCodigo = function() {
+  document.getElementById('modalPedirCodigo').classList.add('hidden');
+};
+function actualizarLinkSolicitud() {
+  const nombre = document.getElementById('nombreSolicitante').value.trim() || 'Un paciente';
+  const tel    = document.getElementById('telefonoSolicitante').value.trim();
+  const msg = `Hola, soy ${nombre}${tel?', mi teléfono es '+tel:''}. Necesito un código de descuento para mi consulta subsecuente con la Dra. Jaznelly. ¿Me podría ayudar? Gracias 🙏`;
+  const link = `https://wa.me/${WA_ASISTENTE}?text=${encodeURIComponent(msg)}`;
+  document.getElementById('btnEnviarSolicitudWA').href = link;
+}
+document.getElementById('nombreSolicitante').addEventListener('input', actualizarLinkSolicitud);
+document.getElementById('telefonoSolicitante').addEventListener('input', actualizarLinkSolicitud);
+
+// ════════════════════════════════════════════════════
+// ADMIN: GENERAR CÓDIGO
+// ════════════════════════════════════════════════════
+document.getElementById('btnGenerarCodigo').addEventListener('click', async () => {
+  const btn   = document.getElementById('btnGenerarCodigo');
+  const errEl = document.getElementById('errorGenerarCodigo');
+  const tel   = document.getElementById('codigoTelefono').value.trim();
+  const notas = document.getElementById('codigoNotas').value.trim();
+
+  errEl.classList.add('hidden');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div><span>Generando...</span>';
+
+  try {
+    const resp = await fetch(EDGE_FN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefono_destino: tel, notas })
     });
+    const data = await resp.json();
 
-    document.getElementById('btnCerrarSesion').addEventListener('click', () => {
-      document.getElementById('adminPanel').classList.add('hidden');
-      document.getElementById('adminLogin').classList.remove('hidden');
-      document.getElementById('vistaAdmin').classList.add('hidden');
-      document.getElementById('vistaReserva').classList.remove('hidden');
-    });
+    if (!data.ok) throw new Error(data.error || 'Error desconocido');
 
-    // Tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tab = btn.dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        if (tab === 'resumen') document.getElementById('tabResumen').classList.remove('hidden');
-        if (tab === 'pacientes') document.getElementById('tabPacientes').classList.remove('hidden');
-        if (tab === 'configuracion') document.getElementById('tabConfiguracion').classList.remove('hidden');
-      });
-    });
+    codigoActualAdmin = data.codigo;
 
-    async function cargarAdmin() {
-      const citas = await obtenerCitas();
-      const hoy = new Date().toISOString().split('T')[0];
+    // Formatear fecha de expiración
+    const expira = new Date(data.expira_en);
+    const expiraStr = expira.toLocaleString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 
-      const citasHoy = citas.filter(c => c.fecha === hoy).length;
-      const inicioSemana = new Date();
-      inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
-      const finSemana = new Date(inicioSemana);
-      finSemana.setDate(finSemana.getDate() + 6);
-      const citasSemana = citas.filter(c => {
-        const f = new Date(c.fecha + 'T00:00:00');
-        return f >= inicioSemana && f <= finSemana;
-      }).length;
-      const pendientes = citas.filter(c => !c.pagado).length;
+    // Construir mensaje para el paciente
+    const mensajePaciente = construirMensajePaciente(data.codigo, expiraStr, tel);
 
-      document.getElementById('statHoy').textContent = citasHoy;
-      document.getElementById('statSemana').textContent = citasSemana;
-      document.getElementById('statPendientes').textContent = pendientes;
-      document.getElementById('statTotal').textContent = citas.length;
+    // Llenar modal
+    document.getElementById('codigoGeneradoDisplay').textContent = data.codigo;
+    document.getElementById('codigoExpiraDisplay').textContent   = expiraStr;
+    document.getElementById('mensajePreview').textContent        = mensajePaciente;
 
-      await actualizarListaCitas();
-      await actualizarProxima();
-      await actualizarBloqueados();
-      await actualizarJuevesHabilitados();
-      await actualizarHorariosBloqueados();
-    }
+    // Link de WhatsApp directo al paciente (si tiene teléfono)
+    const numDestino = tel ? `521${tel}` : WA_ASISTENTE;
+    const waLink = `https://wa.me/${numDestino}?text=${encodeURIComponent(mensajePaciente)}`;
+    document.getElementById('btnWADirecto').href = waLink;
+    document.getElementById('btnWADirecto').textContent = tel
+      ? '📲 Enviar al paciente por WhatsApp'
+      : '📲 Compartir por WhatsApp';
 
-    async function actualizarListaCitas(filtro = null) {
-      const container = document.getElementById('listaCitas');
-      const citas = await obtenerCitas(filtro);
+    // Recargar la tabla
+    await cargarCodigos();
 
-      if (citas.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin citas</p>';
-        return;
-      }
+    // Mostrar modal
+    document.getElementById('modalCodigoGenerado').classList.remove('hidden');
 
-      const tipos = { normal: 'General', urgente: 'Urgente', video: 'Subsecuente' };
-      const iconos = { normal: '🏥', urgente: '🚨', video: '📋' };
+    // Limpiar campos
+    document.getElementById('codigoTelefono').value = '';
+    document.getElementById('codigoNotas').value    = '';
 
-      container.innerHTML = citas.map(c => `
-        <div class="border-b last:border-0 py-3">
-          <div class="flex justify-between items-start mb-2">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <p class="font-semibold text-sm">${iconos[c.tipo]} ${c.nombre}</p>
-                ${c.pagado ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>' : '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
-              </div>
-              <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0, 5)} • ${tipos[c.tipo]}</p>
-              <p class="text-xs text-blue-600 font-mono">Folio: ${c.folio || 'N/A'}</p>
-              <p class="text-xs text-gray-400 mt-1">${c.motivo}</p>
-            </div>
+  } catch (err) {
+    errEl.textContent = `❌ ${err.message}`;
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg> Generar código ahora';
+  }
+});
+
+function construirMensajePaciente(codigo, expiraStr, tel='') {
+  return `Hola 👋 Le saluda el consultorio de la *Dra. Jaznelly Lesso Zamora* 👁️
+
+Le enviamos su código especial para consulta subsecuente:
+
+🔑 *${codigo}*
+
+✅ *Pasos para usarlo:*
+1️⃣ Abra esta página: https://bit.ly/citas-dralesso
+2️⃣ Toque *"Agendar cita"* y elija su fecha y hora
+3️⃣ Al llegar al pago, busque donde dice *"Código de descuento"*
+4️⃣ Escriba exactamente: *${codigo}*
+5️⃣ Toque *"Aplicar"* — el precio bajará a $600 ✔️
+6️⃣ Complete su pago con tarjeta
+
+⏰ Este código es válido hasta: *${expiraStr}*
+⚠️ Es personal, de *un solo uso* y no se puede compartir.
+
+¿Tiene dudas? Llámenos: *477 101 1668* 📞`;
+}
+
+window.copiarCodigoGenerado = function() {
+  const codigo = document.getElementById('codigoGeneradoDisplay').textContent;
+  fallbackCopy(codigo);
+  if (navigator.clipboard) navigator.clipboard.writeText(codigo).catch(()=>{});
+  const b = document.getElementById('copiadoCodigoBanner');
+  b.classList.remove('hidden');
+  setTimeout(()=>b.classList.add('hidden'),2500);
+};
+window.copiarMensajeCompleto = function() {
+  const msg = document.getElementById('mensajePreview').textContent;
+  fallbackCopy(msg);
+  if (navigator.clipboard) navigator.clipboard.writeText(msg).catch(()=>{});
+  const b = document.getElementById('mensajeCopiadoBanner');
+  b.classList.remove('hidden');
+  setTimeout(()=>b.classList.add('hidden'),2500);
+};
+window.cerrarModalCodigo = function() {
+  document.getElementById('modalCodigoGenerado').classList.add('hidden');
+};
+
+// Hacer clic en el botón de WA con texto correcto
+document.getElementById('btnWADirecto').addEventListener('click', function(e){
+  // reconstruir con icono correcto al renderizar
+  if (!this.href || this.href === '#') e.preventDefault();
+});
+
+// ════════════════════════════════════════════════════
+// ADMIN: CARGAR TABLA CÓDIGOS
+// ════════════════════════════════════════════════════
+window.cargarCodigos = async function() {
+  const container = document.getElementById('listaCodigos');
+  container.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">Cargando...</p>';
+  const { data, error } = await supabaseClient
+    .from('codigos_descuento')
+    .select('*')
+    .order('creado_en', { ascending: false })
+    .limit(50);
+  if (error || !data) {
+    container.innerHTML = '<p class="text-red-500 text-sm text-center py-4">Error al cargar</p>';
+    return;
+  }
+  if (data.length === 0) {
+    container.innerHTML = '<p class="text-gray-400 text-sm text-center py-8">Aún no hay códigos generados</p>';
+    return;
+  }
+  const ahora = new Date();
+  container.innerHTML = `
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs font-bold text-gray-500 uppercase border-b">
+            <th class="pb-2 pr-3">Código</th>
+            <th class="pb-2 pr-3">Destino</th>
+            <th class="pb-2 pr-3">Creado</th>
+            <th class="pb-2 pr-3">Expira</th>
+            <th class="pb-2">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(c => {
+            const expira  = new Date(c.expira_en);
+            const expirado = ahora > expira;
+            let badge;
+            if (c.usado)          badge = '<span class="badge badge-used">Usado</span>';
+            else if (expirado)    badge = '<span class="badge badge-expired">Expirado</span>';
+            else                  badge = '<span class="badge badge-active">✓ Activo</span>';
+            const creado  = new Date(c.creado_en).toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+            const expiraF = expira.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+            const dest = c.telefono_destino
+              ? `<span class="text-gray-700">${c.telefono_destino}</span>`
+              : `<span class="text-gray-400 italic">—</span>`;
+            return `
+              <tr class="codigo-row">
+                <td class="py-2 pr-3 font-mono font-bold text-blue-700">${c.codigo}</td>
+                <td class="py-2 pr-3">${dest}${c.notas?`<br><span class="text-xs text-gray-400">${c.notas}</span>`:''}</td>
+                <td class="py-2 pr-3 text-gray-500 text-xs">${creado}</td>
+                <td class="py-2 pr-3 text-gray-500 text-xs">${expiraF}</td>
+                <td class="py-2">${badge}</td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+};
+
+// ════════════════════════════════════════════════════
+// ADMIN: AUTH
+// ════════════════════════════════════════════════════
+document.getElementById('btnAdmin').addEventListener('click', ()=>{
+  document.getElementById('vistaReserva').classList.add('hidden');
+  document.getElementById('vistaAdmin').classList.remove('hidden');
+});
+document.getElementById('btnVolverLogin').addEventListener('click', ()=>{
+  document.getElementById('vistaAdmin').classList.add('hidden');
+  document.getElementById('vistaReserva').classList.remove('hidden');
+});
+async function validarAdminCredenciales(u,p) {
+  try {
+    const { data, error } = await supabaseClient.rpc('check_admin_credentials',{p_username:u,p_password:p});
+    if (error) return false;
+    if (data===true||data==='t'||data===1) return true;
+    if (Array.isArray(data)&&data.length>0) return !!(Object.values(data[0])[0]);
+    return false;
+  } catch { return false; }
+}
+document.getElementById('formLogin').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginError');
+  const btn=document.getElementById('btnLoginSubmit');
+  const btnTxt=document.getElementById('loginBtnText');
+  errEl.classList.add('hidden');
+  if (!user||!pass) { errEl.textContent='⚠️ Completa usuario y contraseña'; errEl.classList.remove('hidden'); return; }
+  btn.disabled=true; btnTxt.textContent='Verificando...';
+  const ok = await validarAdminCredenciales(user,pass);
+  btn.disabled=false; btnTxt.textContent='Entrar al panel';
+  if (ok) {
+    document.getElementById('adminLogin').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    document.getElementById('loginUser').value='';
+    document.getElementById('loginPass').value='';
+    await cargarAdmin();
+  } else {
+    errEl.textContent='❌ Usuario o contraseña incorrectos';
+    errEl.classList.remove('hidden');
+  }
+});
+document.getElementById('btnCerrarSesion').addEventListener('click', ()=>{
+  document.getElementById('adminPanel').classList.add('hidden');
+  document.getElementById('adminLogin').classList.remove('hidden');
+  document.getElementById('vistaAdmin').classList.add('hidden');
+  document.getElementById('vistaReserva').classList.remove('hidden');
+});
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tab=btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+    document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.remove('hidden');
+    if (tab==='descuentos') cargarCodigos();
+  });
+});
+
+// ════════════════════════════════════════════════════
+// ADMIN: DATOS PANEL
+// ════════════════════════════════════════════════════
+async function cargarAdmin() {
+  const citas=await obtenerCitas();
+  const hoy=new Date().toISOString().split('T')[0];
+  const inicioSem=new Date(); inicioSem.setDate(inicioSem.getDate()-inicioSem.getDay());
+  const finSem=new Date(inicioSem); finSem.setDate(finSem.getDate()+6);
+  document.getElementById('statHoy').textContent    = citas.filter(c=>c.fecha===hoy).length;
+  document.getElementById('statSemana').textContent = citas.filter(c=>{const f=new Date(c.fecha+'T00:00:00');return f>=inicioSem&&f<=finSem;}).length;
+  document.getElementById('statPendientes').textContent = citas.filter(c=>!c.pagado).length;
+  document.getElementById('statTotal').textContent  = citas.length;
+  await actualizarListaCitas();
+  await actualizarProxima();
+  await actualizarBloqueados();
+  await actualizarJuevesHabilitados();
+  await actualizarHorariosBloqueados();
+}
+async function actualizarListaCitas(filtro=null) {
+  const container=document.getElementById('listaCitas');
+  const citas=await obtenerCitas(filtro);
+  if (!citas.length) { container.innerHTML='<p class="text-gray-500 text-sm text-center py-4">Sin citas</p>'; return; }
+  const tipos={normal:'General',urgente:'Urgente',video:'Subsecuente'};
+  const iconos={normal:'🏥',urgente:'🚨',video:'📋'};
+  container.innerHTML=citas.map(c=>`
+    <div class="border-b last:border-0 py-3">
+      <div class="flex justify-between items-start mb-2">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-sm">${iconos[c.tipo]} ${c.nombre}</p>
+            ${c.pagado?'<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>':'<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
           </div>
-          <div class="flex gap-2">
-            ${!c.pagado ? `<button onclick="marcarComoPagado(${c.id})" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-semibold">Marcar pagado</button>` : ''}
-            <button onclick="cancelarCita(${c.id})" class="text-xs text-red-600 font-semibold">Cancelar</button>
-          </div>
+          <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0,5)} • ${tipos[c.tipo]}</p>
+          <p class="text-xs text-blue-600 font-mono">Folio: ${c.folio||'N/A'}</p>
+          <p class="text-xs text-gray-400 mt-1">${c.motivo}</p>
         </div>
-      `).join('');
-    }
+      </div>
+      <div class="flex gap-2">
+        ${!c.pagado?`<button onclick="marcarComoPagado(${c.id})" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg font-semibold">Marcar pagado</button>`:''}
+        <button onclick="cancelarCita(${c.id})" class="text-xs text-red-600 font-semibold">Cancelar</button>
+      </div>
+    </div>`).join('');
+}
+async function actualizarProxima() {
+  const citas=await obtenerCitas();
+  const ahora=new Date();
+  const proxima=citas.find(c=>new Date(`${c.fecha}T${c.horario}`)>=ahora);
+  const container=document.getElementById('proximaCitaContent');
+  if (proxima) {
+    const tipos={normal:'General',urgente:'Urgente',video:'Subsecuente'};
+    const iconos={normal:'🏥',urgente:'🚨',video:'📋'};
+    container.innerHTML=`<p class="font-bold">${iconos[proxima.tipo]} ${proxima.nombre}</p><p class="text-sm text-gray-600">${proxima.fecha} • ${proxima.horario.substring(0,5)}</p><p class="text-xs text-blue-600 font-mono">Folio: ${proxima.folio||'N/A'}</p><p class="text-xs text-gray-500 mt-1">${proxima.motivo}</p><p class="text-xs text-gray-400 mt-2">📞 ${proxima.telefono}</p>`;
+  } else { container.innerHTML='<p class="text-gray-500 text-sm">No hay próximas</p>'; }
+}
+window.cancelarCita = async id=>{ if(confirm('¿Cancelar esta cita?')){await cancelarCitaDB(id);await cargarAdmin();} };
+window.marcarComoPagado = async id=>{ if(confirm('¿Marcar como pagado?')){await marcarPagado(id);await cargarAdmin();} };
+document.getElementById('filtroFecha').addEventListener('change',e=>actualizarListaCitas(e.target.value||null));
+document.getElementById('btnLimpiarFiltro').addEventListener('click',()=>{document.getElementById('filtroFecha').value='';actualizarListaCitas();});
 
-    async function actualizarProxima() {
-      const citas = await obtenerCitas();
-      const ahora = new Date();
-      const proxima = citas.find(c => new Date(`${c.fecha}T${c.horario}`) >= ahora);
+// Búsqueda pacientes
+document.getElementById('btnBuscarPaciente').addEventListener('click', async()=>{
+  const termino=document.getElementById('inputBuscarPaciente').value.trim();
+  if (!termino){alert('Escribe un nombre, teléfono o folio');return;}
+  const resultados=await buscarPaciente(termino);
+  if (!resultados.length){document.getElementById('resultadosBusqueda').classList.add('hidden');document.getElementById('sinResultados').classList.remove('hidden');return;}
+  const p=resultados[0];
+  document.getElementById('sinResultados').classList.add('hidden');
+  document.getElementById('resultadosBusqueda').classList.remove('hidden');
+  document.getElementById('nombrePaciente').textContent=p.nombre;
+  document.getElementById('contactoPaciente').textContent=`${p.telefono}${p.email?' • '+p.email:''}`;
+  const hist=resultados.filter(c=>c.telefono===p.telefono);
+  document.getElementById('totalCitasPaciente').textContent=`${hist.length} cita${hist.length!==1?'s':''}`;
+  const tipos={normal:'General',urgente:'Urgente',video:'Subsecuente'};
+  const iconos={normal:'🏥',urgente:'🚨',video:'📋'};
+  document.getElementById('historialCitas').innerHTML=hist.map(c=>`<div class="p-3 bg-gray-50 rounded-lg"><div class="flex justify-between items-start mb-1"><p class="font-semibold text-sm">${iconos[c.tipo]} ${tipos[c.tipo]}</p>${c.pagado?'<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>':'<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}</div><p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0,5)}</p><p class="text-xs text-blue-600 font-mono">Folio: ${c.folio||'N/A'}</p><p class="text-xs text-gray-600 mt-1">${c.motivo}</p></div>`).join('');
+});
+document.getElementById('btnCerrarPaciente').addEventListener('click',()=>{document.getElementById('resultadosBusqueda').classList.add('hidden');document.getElementById('inputBuscarPaciente').value='';});
 
-      const container = document.getElementById('proximaCitaContent');
+// Configuración
+document.getElementById('formDesbloquearJueves').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const fecha=document.getElementById('fechaDesbloquearJueves').value;
+  if (new Date(fecha+'T00:00:00').getDay()!==4){alert('⚠️ No es jueves');return;}
+  const r=await habilitarJueves(fecha);
+  if(r){await actualizarJuevesHabilitados();await renderCalendar();e.target.reset();alert('✅ Jueves habilitado');}
+});
+document.getElementById('formBloquearDia').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const r=await bloquearDia({fecha:document.getElementById('fechaBloquearDia').value,motivo:document.getElementById('motivoBloqueo').value||'Sin motivo'});
+  if(r){await actualizarBloqueados();await renderCalendar();e.target.reset();alert('✅ Día bloqueado');}
+});
+async function actualizarBloqueados() {
+  const c=document.getElementById('listaDiasBloqueados');
+  const b=await obtenerDiasBloqueados();
+  if(!b.length){c.innerHTML='<p class="text-gray-500 text-sm text-center py-4">Sin bloqueos</p>';return;}
+  c.innerHTML=b.map(b=>`<div class="border-b last:border-0 py-3 flex justify-between items-center"><div><p class="font-semibold text-sm">📅 ${b.fecha}</p><p class="text-xs text-gray-500">${b.motivo}</p></div><button onclick="eliminarBloqueo(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button></div>`).join('');
+}
+async function actualizarJuevesHabilitados() {
+  const c=document.getElementById('listaJuevesHabilitados');
+  const j=await obtenerJuevesHabilitados();
+  if(!j.length){c.innerHTML='<p class="text-gray-500 text-sm text-center py-4">Ningún jueves habilitado</p>';return;}
+  c.innerHTML=j.map(j=>`<div class="border-b last:border-0 py-3 flex justify-between items-center"><div><p class="font-semibold text-sm">📅 ${j.fecha}</p><p class="text-xs text-green-600">Habilitado</p></div><button onclick="eliminarJuevesHabilitado(${j.id})" class="text-xs text-red-600 font-semibold">Deshabilitar</button></div>`).join('');
+}
+window.eliminarBloqueo=async id=>{if(confirm('¿Desbloquear?')){await desbloquearDia(id);await actualizarBloqueados();await renderCalendar();}};
+window.eliminarJuevesHabilitado=async id=>{if(confirm('¿Deshabilitar este jueves?')){await deshabilitarJueves(id);await actualizarJuevesHabilitados();await renderCalendar();}};
+document.getElementById('formBloquearHorario').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const r=await bloquearHorario({fecha:document.getElementById('fechaBloquearHorario').value,horario:document.getElementById('horarioBloquear').value,motivo:document.getElementById('motivoBloqueoHorario').value||'Sin motivo'});
+  if(r){await actualizarHorariosBloqueados();e.target.reset();alert('✅ Horario bloqueado');}
+});
+async function actualizarHorariosBloqueados() {
+  const c=document.getElementById('listaHorariosBloqueados');
+  const b=await obtenerHorariosBloqueados();
+  if(!b.length){c.innerHTML='<p class="text-gray-500 text-sm text-center py-4">Sin horarios bloqueados</p>';return;}
+  c.innerHTML=b.map(b=>`<div class="border-b last:border-0 py-3 flex justify-between items-center"><div><p class="font-semibold text-sm">🕐 ${b.fecha} • ${b.horario.substring(0,5)}</p><p class="text-xs text-gray-500">${b.motivo}</p></div><button onclick="eliminarHorarioBloqueado(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button></div>`).join('');
+}
+window.eliminarHorarioBloqueado=async id=>{if(confirm('¿Desbloquear este horario?')){await desbloquearHorario(id);await actualizarHorariosBloqueados();}};
 
-      if (proxima) {
-        const tipos = { normal: 'General', urgente: 'Urgente', video: 'Subsecuente' };
-        const iconos = { normal: '🏥', urgente: '🚨', video: '📋' };
-        container.innerHTML = `
-          <p class="font-bold">${iconos[proxima.tipo]} ${proxima.nombre}</p>
-          <p class="text-sm text-gray-600">${proxima.fecha} • ${proxima.horario.substring(0, 5)}</p>
-          <p class="text-xs text-blue-600 font-mono">Folio: ${proxima.folio || 'N/A'}</p>
-          <p class="text-xs text-gray-500 mt-1">${proxima.motivo}</p>
-          <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
-            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-            </svg>
-            ${proxima.telefono}
-          </p>
-        `;
-      } else {
-        container.innerHTML = '<p class="text-gray-500 text-sm">No hay próximas</p>';
-      }
-    }
-
-    window.cancelarCita = async function (id) {
-      if (confirm('¿Cancelar esta cita?')) {
-        await cancelarCitaDB(id);
-        await cargarAdmin();
-      }
-    };
-
-    window.marcarComoPagado = async function (id) {
-      if (confirm('¿Marcar como pagado?')) {
-        await marcarPagado(id);
-        await cargarAdmin();
-      }
-    };
-
-    document.getElementById('filtroFecha').addEventListener('change', (e) => {
-      actualizarListaCitas(e.target.value || null);
-    });
-
-    document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
-      document.getElementById('filtroFecha').value = '';
-      actualizarListaCitas();
-    });
-
-    let pacienteActual = null;
-
-    document.getElementById('btnBuscarPaciente').addEventListener('click', async () => {
-      const termino = document.getElementById('inputBuscarPaciente').value.trim();
-      if (!termino) {
-        alert('Escribe un nombre, teléfono o folio');
-        return;
-      }
-
-      const resultados = await buscarPaciente(termino);
-
-      if (resultados.length === 0) {
-        document.getElementById('resultadosBusqueda').classList.add('hidden');
-        document.getElementById('sinResultados').classList.remove('hidden');
-        return;
-      }
-
-      const paciente = resultados[0];
-      pacienteActual = paciente;
-
-      document.getElementById('sinResultados').classList.add('hidden');
-      document.getElementById('resultadosBusqueda').classList.remove('hidden');
-
-      document.getElementById('nombrePaciente').textContent = paciente.nombre;
-      document.getElementById('contactoPaciente').textContent = `${paciente.telefono}${paciente.email ? ' • ' + paciente.email : ''}`;
-
-      const historial = resultados.filter(c => c.telefono === paciente.telefono);
-      document.getElementById('totalCitasPaciente').textContent = `${historial.length} cita${historial.length !== 1 ? 's' : ''}`;
-
-      const tipos = { normal: 'General', urgente: 'Urgente', video: 'Subsecuente' };
-      const iconos = { normal: '🏥', urgente: '🚨', video: '📋' };
-
-      document.getElementById('historialCitas').innerHTML = historial.map(c => `
-        <div class="p-3 bg-gray-50 rounded-lg">
-          <div class="flex justify-between items-start mb-1">
-            <p class="font-semibold text-sm">${iconos[c.tipo]} ${tipos[c.tipo]}</p>
-            ${c.pagado ? '<span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full font-semibold">Pagado</span>' : '<span class="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-semibold">Pendiente</span>'}
-          </div>
-          <p class="text-xs text-gray-500">${c.fecha} • ${c.horario.substring(0, 5)}</p>
-          <p class="text-xs text-blue-600 font-mono">Folio: ${c.folio || 'N/A'}</p>
-          <p class="text-xs text-gray-600 mt-1">${c.motivo}</p>
-        </div>
-      `).join('');
-    });
-
-    document.getElementById('btnCerrarPaciente').addEventListener('click', () => {
-      document.getElementById('resultadosBusqueda').classList.add('hidden');
-      document.getElementById('inputBuscarPaciente').value = '';
-      pacienteActual = null;
-    });
-
-    document.getElementById('formDesbloquearJueves').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fecha = document.getElementById('fechaDesbloquearJueves').value;
-      const fechaObj = new Date(fecha + 'T00:00:00');
-
-      if (fechaObj.getDay() !== 4) {
-        alert('⚠️ La fecha seleccionada no es jueves');
-        return;
-      }
-
-      const result = await habilitarJueves(fecha);
-      if (result) {
-        await actualizarJuevesHabilitados();
-        await renderCalendar();
-        e.target.reset();
-        alert('✅ Jueves habilitado');
-      }
-    });
-
-    document.getElementById('formBloquearDia').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const bloqueo = {
-        fecha: document.getElementById('fechaBloquearDia').value,
-        motivo: document.getElementById('motivoBloqueo').value || 'Sin motivo'
-      };
-      const result = await bloquearDia(bloqueo);
-      if (result) {
-        await actualizarBloqueados();
-        await renderCalendar();
-        e.target.reset();
-        alert('✅ Día bloqueado');
-      }
-    });
-
-    async function actualizarBloqueados() {
-      const container = document.getElementById('listaDiasBloqueados');
-      const bloqueados = await obtenerDiasBloqueados();
-
-      if (bloqueados.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin bloqueos</p>';
-        return;
-      }
-
-      container.innerHTML = bloqueados.map(b => `
-        <div class="border-b last:border-0 py-3 flex justify-between items-center">
-          <div>
-            <p class="font-semibold text-sm">📅 ${b.fecha}</p>
-            <p class="text-xs text-gray-500">${b.motivo}</p>
-          </div>
-          <button onclick="eliminarBloqueo(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button>
-        </div>
-      `).join('');
-    }
-
-    async function actualizarJuevesHabilitados() {
-      const container = document.getElementById('listaJuevesHabilitados');
-      const jueves = await obtenerJuevesHabilitados();
-
-      if (jueves.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Ningún jueves habilitado</p>';
-        return;
-      }
-
-      container.innerHTML = jueves.map(j => `
-        <div class="border-b last:border-0 py-3 flex justify-between items-center">
-          <div>
-            <p class="font-semibold text-sm">📅 ${j.fecha}</p>
-            <p class="text-xs text-green-600">Jueves habilitado</p>
-          </div>
-          <button onclick="eliminarJuevesHabilitado(${j.id})" class="text-xs text-red-600 font-semibold">Deshabilitar</button>
-        </div>
-      `).join('');
-    }
-
-    window.eliminarBloqueo = async function (id) {
-      if (confirm('¿Desbloquear?')) {
-        await desbloquearDia(id);
-        await actualizarBloqueados();
-        await renderCalendar();
-      }
-    };
-
-    window.eliminarJuevesHabilitado = async function (id) {
-      if (confirm('¿Deshabilitar este jueves?')) {
-        await deshabilitarJueves(id);
-        await actualizarJuevesHabilitados();
-        await renderCalendar();
-      }
-    };
-
-    document.getElementById('formBloquearHorario').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const bloqueo = {
-        fecha: document.getElementById('fechaBloquearHorario').value,
-        horario: document.getElementById('horarioBloquear').value,
-        motivo: document.getElementById('motivoBloqueoHorario').value || 'Sin motivo'
-      };
-      const result = await bloquearHorario(bloqueo);
-      if (result) {
-        await actualizarHorariosBloqueados();
-        e.target.reset();
-        alert('✅ Horario bloqueado');
-      }
-    });
-
-    async function actualizarHorariosBloqueados() {
-      const container = document.getElementById('listaHorariosBloqueados');
-      const bloqueados = await obtenerHorariosBloqueados();
-
-      if (bloqueados.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Sin horarios bloqueados</p>';
-        return;
-      }
-
-      container.innerHTML = bloqueados.map(b => `
-        <div class="border-b last:border-0 py-3 flex justify-between items-center">
-          <div>
-            <p class="font-semibold text-sm">🕐 ${b.fecha} • ${b.horario.substring(0, 5)}</p>
-            <p class="text-xs text-gray-500">${b.motivo}</p>
-          </div>
-          <button onclick="eliminarHorarioBloqueado(${b.id})" class="text-xs text-red-600 font-semibold">Quitar</button>
-        </div>
-      `).join('');
-    }
-
-    window.eliminarHorarioBloqueado = async function (id) {
-      if (confirm('¿Desbloquear este horario?')) {
-        await desbloquearHorario(id);
-        await actualizarHorariosBloqueados();
-      }
-    };
-
-    // ============================================
-    // INIT
-    // ============================================
-    window.addEventListener('load', () => {
-      renderCalendar();
-    });
-  </script>
+// INIT
+window.addEventListener('load', ()=>renderCalendar());
+</script>
 </body>
-
 </html>
