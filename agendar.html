@@ -265,21 +265,53 @@
       }
     }
 
+    /* CAMBIO 1: Folio más compacto */
     .folio-display {
       background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
       border: 2px solid #3b82f6;
-      padding: 20px;
+      padding: 12px 16px;
       border-radius: 16px;
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
     .folio-number {
-      font-size: 2.5rem;
+      font-size: 1.6rem;
       font-weight: 700;
       color: #1e40af;
       font-family: 'DM Sans', monospace;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
+    }
+
+    /* CAMBIO 3: Leyenda de clic para copiar */
+    .folio-click-hint {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #1d4ed8;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Toast de copiado más visible */
+    .copy-toast-banner {
+      display: none;
+      background: #10b981;
+      color: white;
+      font-weight: 700;
+      font-size: 0.875rem;
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-top: 8px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .copy-toast-banner.show {
+      display: flex;
     }
 
     .tab-btn {
@@ -385,9 +417,8 @@
             <!-- Generado dinámicamente -->
           </div>
 
-          <!-- Banner de disponibilidad mejorado -->
+          <!-- Banner de disponibilidad -->
           <div class="mt-6 pt-6 border-t border-gray-200">
-            <!-- Banner de contacto prioritario -->
             <div
               class="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
               <div class="flex items-center gap-3">
@@ -602,57 +633,59 @@
         </form>
       </div>
 
-      <!-- Paso 5: Confirmación -->
+      <!-- Paso 4: Confirmación -->
       <div id="confirmacion" class="hidden">
-        <div class="text-center mb-6">
-          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+        <div class="text-center mb-4">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd"
                 d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                 clip-rule="evenodd" />
             </svg>
           </div>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Cita confirmada!</h2>
-          <p class="text-gray-600">Tu reserva ha sido guardada</p>
+          <h2 class="text-xl font-bold text-gray-900 mb-1">¡Cita confirmada!</h2>
+          <p class="text-sm text-gray-600">Tu reserva ha sido guardada</p>
         </div>
 
-        <!-- FOLIO -->
-        <div class="folio-display relative">
-          <p class="text-sm font-semibold text-blue-900 mb-2">TU FOLIO DE CITA</p>
-          <div class="flex items-center justify-center gap-3">
-            <div class="folio-number" id="folioDisplay">-</div>
-            <button id="btnCopyFolio" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-              title="Copiar Folio">
-              <i class="far fa-copy text-2xl"></i>
-            </button>
+        <!-- FOLIO: compacto, auto-copia y leyenda -->
+        <div class="folio-display" id="folioArea">
+          <p class="text-xs font-semibold text-blue-900 mb-1">TU FOLIO DE CITA</p>
+          <div class="folio-number" id="folioDisplay">-</div>
+          <!-- CAMBIO 3: leyenda de clic para copiar -->
+          <span class="folio-click-hint" id="folioClickHint" onclick="copiarFolioManual()">
+            👆 Da clic AQUÍ para copiar tu folio
+          </span>
+          <!-- CAMBIO 2: banner de confirmación de copiado -->
+          <div class="copy-toast-banner" id="copyToastBanner">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            ¡Folio copiado en tu portapapeles!
           </div>
-          <p class="text-xs text-blue-700 mt-2">Guarda este folio para consultar tu cita</p>
-          <div id="copyToast"
-            class="hidden absolute left-1/2 -translate-x-1/2 -bottom-4 bg-gray-800 text-white text-[10px] px-2 py-1 rounded">
-            Copiado</div>
+          <p class="text-xs text-blue-700 mt-1">Guarda este folio para consultar o cancelar tu cita</p>
         </div>
 
-        <div class="card p-6 mb-4">
-          <div class="space-y-4">
+        <div class="card p-4 mb-4">
+          <div class="space-y-3">
             <div>
-              <p class="text-xs text-gray-500 mb-1">FECHA Y HORA</p>
-              <p class="font-bold text-lg" id="resumenFecha">-</p>
+              <p class="text-xs text-gray-500 mb-0.5">FECHA Y HORA</p>
+              <p class="font-bold" id="resumenFecha">-</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500 mb-1">TIPO</p>
+              <p class="text-xs text-gray-500 mb-0.5">TIPO</p>
               <p class="font-semibold" id="resumenTipo">-</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500 mb-1">TOTAL</p>
-              <p class="text-3xl font-bold text-blue-600" id="resumenPrecio">-</p>
+              <p class="text-xs text-gray-500 mb-0.5">TOTAL</p>
+              <p class="text-2xl font-bold text-blue-600" id="resumenPrecio">-</p>
             </div>
           </div>
         </div>
 
-        <!-- Alerta de tiempo límite dinámica -->
-        <div class="card p-4 bg-amber-50 border border-amber-200 mb-4">
+        <!-- Alerta de tiempo límite -->
+        <div class="card p-3 bg-amber-50 border border-amber-200 mb-4">
           <p class="text-sm text-amber-800 text-center flex items-center justify-center gap-2">
-            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd"
                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
                 clip-rule="evenodd" />
@@ -661,7 +694,7 @@
           </p>
         </div>
 
-        <!-- Dos botones de pago -->
+        <!-- Botones de pago -->
         <p class="text-sm font-semibold text-gray-700 mb-3 text-center">Elige cómo pagar:</p>
         <div class="space-y-3 mb-4">
           <!-- Botón Tarjeta -->
@@ -695,15 +728,13 @@
             </button>
           </div>
         </div>
+        <!-- CAMBIO 4: Botón "Consultar mi cita" eliminado -->
 
-        <a href="consultar.html" class="btn-secondary w-full block text-center">
-          Consultar mi cita
-        </a>
       </div>
 
     </div>
 
-    <!-- VISTA: Admin (Login simplificado) -->
+    <!-- VISTA: Admin -->
     <div id="vistaAdmin" class="hidden">
       <div id="adminLogin">
         <div class="card p-6 max-w-sm mx-auto mt-12">
@@ -813,7 +844,6 @@
                     id="totalCitasPaciente">0 citas</span>
                 </div>
                 <div id="historialCitas" class="space-y-2 max-h-64 overflow-y-auto">
-                  <!-- Generado dinámicamente -->
                 </div>
               </div>
             </div>
@@ -923,7 +953,6 @@
       normal_oxxo: 'https://buy.stripe.com/bJe00i4emcGIggX6W9dAk07'
     };
 
-    // Tiempos límite de pago por tipo y método
     const TIEMPO_LIMITE = {
       urgente_stripe: 2,
       normal_stripe: 5,
@@ -942,7 +971,6 @@
       const minuto = String(fecha.getMinutes()).padStart(2, '0');
       const segundo = String(fecha.getSeconds()).padStart(2, '0');
       const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-
       return `${año}${mes}${dia}-${hora}${minuto}${segundo}${random}`;
     }
 
@@ -955,6 +983,59 @@
     let folioGenerado = null;
     let pacienteActualForm = null;
     let timeoutBusqueda = null;
+
+    // ============================================
+    // CAMBIO 2 y 3: Función de copiar folio
+    // ============================================
+    function mostrarToastCopiado() {
+      const banner = document.getElementById('copyToastBanner');
+      const hint = document.getElementById('folioClickHint');
+      banner.classList.add('show');
+      hint.style.display = 'none';
+      setTimeout(() => {
+        banner.classList.remove('show');
+        hint.style.display = 'block';
+      }, 3000);
+    }
+
+    // Auto-copia al mostrar el folio
+    function autoCopiarFolio(folio) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(folio).then(() => {
+          mostrarToastCopiado();
+        }).catch(() => {
+          // Fallback silencioso
+        });
+      }
+    }
+
+    // Copia manual al hacer clic en la leyenda
+    window.copiarFolioManual = function() {
+      const folio = document.getElementById('folioDisplay').textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(folio).then(() => {
+          mostrarToastCopiado();
+        }).catch(() => {
+          // Fallback para dispositivos que no soportan clipboard API
+          const el = document.createElement('textarea');
+          el.value = folio;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+          mostrarToastCopiado();
+        });
+      } else {
+        // Fallback
+        const el = document.createElement('textarea');
+        el.value = folio;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        mostrarToastCopiado();
+      }
+    };
 
     // ============================================
     // FUNCIONES DB
@@ -1063,11 +1144,9 @@
           .select('*')
           .in('telefono', telefonos)
           .order('fecha', { ascending: false });
-
         return citas || [];
       }
 
-      // Buscar por folio
       const { data: citasPorFolio } = await supabaseClient
         .from('citas')
         .select('*')
@@ -1120,15 +1199,12 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ============================================
-    // INICIAR EN PASO 1 (FECHA)
-    // ============================================
     document.addEventListener('DOMContentLoaded', () => {
       showStep(1);
     });
 
     // ============================================
-    // PASO 2: CALENDARIO
+    // CALENDARIO
     // ============================================
     async function getAvailabilityForDate(fechaStr) {
       const dateObj = new Date(fechaStr + 'T00:00:00');
@@ -1136,12 +1212,9 @@
 
       let horariosDisponibles = [];
 
-      // Lunes (1), Miércoles (3), Jueves (4), Viernes (5)
       if (diaSemana === 1 || diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
         horariosDisponibles = ['11:00:00', '11:40:00', '12:20:00', '13:00:00', '13:40:00', '10:00:00', '14:20:00'];
-      }
-      // Martes (2)
-      else if (diaSemana === 2) {
+      } else if (diaSemana === 2) {
         horariosDisponibles = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00', '16:00:00', '20:20:00'];
       }
 
@@ -1204,7 +1277,6 @@
         } else if (isBlocked || isThursdayBlocked) {
           cell.classList.add('blocked');
         } else {
-          // Calcular disponibilidad
           const libres = await getAvailabilityForDate(fechaStr);
 
           if (libres === 0) {
@@ -1239,7 +1311,7 @@
     });
 
     // ============================================
-    // PASO 2: HORARIOS
+    // HORARIOS
     // ============================================
     async function renderHorarios() {
       document.getElementById('fechaSeleccionada').textContent = selectedDate;
@@ -1247,7 +1319,6 @@
       const citas = await obtenerCitas(selectedDate);
       const ocupados = citas.map(c => c.horario);
 
-      // Obtener horarios bloqueados para esta fecha
       const horariosBloqueadosData = await obtenerHorariosBloqueados(selectedDate);
       const horariosBloqueados = horariosBloqueadosData.map(h => h.horario);
 
@@ -1257,22 +1328,14 @@
       let horariosGeneral = [];
       let horariosUrgent = [];
 
-      // Lunes (1), Miércoles (3), Jueves (4), Viernes (5)
       if (diaSemana === 1 || diaSemana === 3 || diaSemana === 4 || diaSemana === 5) {
-        // Consulta General: 11:00 a 13:40 (40 min intervals)
         horariosGeneral = ['11:00:00', '11:40:00', '12:20:00', '13:00:00', '13:40:00'];
-        // Consulta Urgente: 10:00 y 14:20
         horariosUrgent = ['10:00:00', '14:20:00'];
-      }
-      // Martes (2)
-      else if (diaSemana === 2) {
-        // Consulta General: 17:00 a 19:40 (40 min intervals)
+      } else if (diaSemana === 2) {
         horariosGeneral = ['17:00:00', '17:40:00', '18:20:00', '19:00:00', '19:40:00'];
-        // Consulta Prioritaria: 16:00 y 20:20
         horariosUrgent = ['16:00:00', '20:20:00'];
       }
 
-      // Renderizar Consulta General
       const containerGeneral = document.getElementById('horariosGeneralContainer');
       containerGeneral.innerHTML = '';
 
@@ -1286,9 +1349,7 @@
 
           if (ocupados.includes(h) || horariosBloqueados.includes(h)) {
             slot.classList.add('disabled');
-            if (horariosBloqueados.includes(h)) {
-              slot.title = 'Horario bloqueado';
-            }
+            if (horariosBloqueados.includes(h)) slot.title = 'Horario bloqueado';
           } else {
             slot.addEventListener('click', () => {
               selectedTime = h;
@@ -1298,12 +1359,10 @@
               setTimeout(() => showStep(3), 300);
             });
           }
-
           containerGeneral.appendChild(slot);
         });
       }
 
-      // Renderizar Consulta Prioritaria
       const containerUrgent = document.getElementById('horariosUrgentContainer');
       containerUrgent.innerHTML = '';
 
@@ -1317,9 +1376,7 @@
 
           if (ocupados.includes(h) || horariosBloqueados.includes(h)) {
             slot.classList.add('disabled');
-            if (horariosBloqueados.includes(h)) {
-              slot.title = 'Horario bloqueado';
-            }
+            if (horariosBloqueados.includes(h)) slot.title = 'Horario bloqueado';
           } else {
             slot.addEventListener('click', () => {
               selectedTime = h;
@@ -1329,21 +1386,10 @@
               setTimeout(() => showStep(3), 300);
             });
           }
-
           containerUrgent.appendChild(slot);
         });
       }
     }
-
-    // Botón Copiar Folio
-    document.getElementById('btnCopyFolio').addEventListener('click', () => {
-      const folio = document.getElementById('folioDisplay').textContent;
-      navigator.clipboard.writeText(folio).then(() => {
-        const toast = document.getElementById('copyToast');
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 2000);
-      });
-    });
 
     // ============================================
     // PASO 3: AUTOCOMPLETADO
@@ -1402,7 +1448,7 @@
     });
 
     // ============================================
-    // PASO 4: FORM SUBMIT
+    // FORM SUBMIT
     // ============================================
     document.getElementById('formDatos').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1414,48 +1460,39 @@
       const email = document.getElementById('inputEmail').value.trim();
       const motivo = document.getElementById('inputMotivo').value.trim();
 
-      // Validaciones
       if (!validarTelefono(telefono)) {
         alert('❌ El teléfono debe tener exactamente 10 dígitos numéricos');
         return;
       }
-
       if (!validarTexto(nombre, 2)) {
         alert('❌ El nombre debe tener al menos 2 caracteres');
         return;
       }
-
       if (!validarTexto(apellidoPaterno, 2)) {
         alert('❌ El apellido paterno debe tener al menos 2 caracteres');
         return;
       }
-
       if (!validarTexto(apellidoMaterno, 2)) {
         alert('❌ El apellido materno debe tener al menos 2 caracteres');
         return;
       }
-
       if (email && !validarEmail(email)) {
         alert('❌ El formato del email no es válido');
         return;
       }
-
       if (!validarTexto(motivo, 10)) {
         alert('❌ El motivo de consulta debe tener al menos 10 caracteres');
         return;
       }
 
-      // Sanitizar
       const nombreSanitizado = sanitizarTexto(nombre).toUpperCase();
       const apellidoPaternoSanitizado = sanitizarTexto(apellidoPaterno).toUpperCase();
       const apellidoMaternoSanitizado = sanitizarTexto(apellidoMaterno).toUpperCase();
       const emailSanitizado = email ? sanitizarTexto(email).toLowerCase() : null;
       const motivoSanitizado = sanitizarTexto(motivo);
 
-      // Generar folio
       folioGenerado = generarFolio();
 
-      // Crear paciente
       const paciente = await upsertPaciente({
         telefono,
         nombre: nombreSanitizado,
@@ -1469,7 +1506,6 @@
         return;
       }
 
-      // Crear cita con FOLIO
       const cita = {
         paciente_id: paciente.id,
         folio: folioGenerado,
@@ -1490,15 +1526,15 @@
         const precios = { normal: '$1,100', urgente: '$1,600', video: '$600' };
         const tipos = { normal: 'Consulta General', urgente: 'Consulta Prioritaria', video: 'Consulta Subsecuente' };
 
+        // Mostrar folio
         document.getElementById('folioDisplay').textContent = folioGenerado;
         document.getElementById('resumenFecha').textContent = `${selectedDate} • ${selectedTime.substring(0, 5)}`;
         document.getElementById('resumenTipo').textContent = tipos[selectedType];
         document.getElementById('resumenPrecio').textContent = precios[selectedType];
 
-        // Mostrar/ocultar Oxxo y mensaje según tipo
+        // CAMBIO 4: Oxxo y mensaje según tipo
         const wrapperOxxo = document.getElementById('wrapperBtnOxxo');
         if (selectedType === 'urgente') {
-          // Cita Prioritaria: solo tarjeta, 2 horas
           wrapperOxxo.classList.add('hidden');
           document.getElementById('mensajeTiempoLimite').innerHTML =
             `<strong>Tienes 2 horas</strong> para completar tu pago con tarjeta`;
@@ -1508,22 +1544,29 @@
             `<strong>Tienes 5 horas</strong> para completar tu pago (tarjeta u Oxxo)`;
         }
 
-        // Botón Tarjeta: actualiza metodo_pago = 'stripe' y redirige con folio como referencia
         document.getElementById('btnPagarTarjeta').onclick = async () => {
           await supabaseClient.from('citas').update({ metodo_pago: 'stripe' }).eq('id', citaId);
           const url = `${STRIPE_LINKS[selectedType]}?client_reference_id=${folioGenerado}`;
           window.open(url, '_blank');
         };
 
-        // Botón Oxxo: solo aplica para citas generales/subsecuentes
         document.getElementById('btnPagarOxxo').onclick = async () => {
           await supabaseClient.from('citas').update({ metodo_pago: 'oxxo' }).eq('id', citaId);
           const url = `${STRIPE_LINKS['normal_oxxo']}?client_reference_id=${folioGenerado}`;
           window.open(url, '_blank');
         };
 
+        // CAMBIO 4: Mostrar confirmación y scroll al top
         document.getElementById('paso3').classList.add('hidden');
         document.getElementById('confirmacion').classList.remove('hidden');
+
+        // CAMBIO 4: Scroll al inicio ANTES de auto-copiar
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // CAMBIO 2: Auto-copiar folio al portapapeles
+        setTimeout(() => {
+          autoCopiarFolio(folioGenerado);
+        }, 600);
 
         document.getElementById('formDatos').reset();
         pacienteActualForm = null;
@@ -1559,7 +1602,6 @@
 
     async function validarAdminCredenciales(usuario, contrasena) {
       try {
-        // Llamamos a la función RPC en Postgres que verifica el hash (pgcrypto)
         const { data, error } = await supabaseClient.rpc('check_admin_credentials', {
           p_username: usuario,
           p_password: contrasena
@@ -1570,13 +1612,10 @@
           return false;
         }
 
-        // data puede venir como true/false o como un objeto/array según versión; normalizamos
         if (data === true || data === 't' || data === 1) return true;
         if (Array.isArray(data) && data.length > 0) {
-          // Por si la función devuelve rowset con boolean
           const v = data[0];
           if (v === true) return true;
-          // si viene como { check_admin_credentials: true }
           const val = Object.values(v)[0];
           return !!val;
         }
@@ -1622,10 +1661,8 @@
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         if (tab === 'resumen') document.getElementById('tabResumen').classList.remove('hidden');
         if (tab === 'pacientes') document.getElementById('tabPacientes').classList.remove('hidden');
@@ -1743,7 +1780,6 @@
       actualizarListaCitas();
     });
 
-    // Búsqueda de pacientes
     let pacienteActual = null;
 
     document.getElementById('btnBuscarPaciente').addEventListener('click', async () => {
@@ -1795,7 +1831,6 @@
       pacienteActual = null;
     });
 
-    // Configuración
     document.getElementById('formDesbloquearJueves').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fecha = document.getElementById('fechaDesbloquearJueves').value;
@@ -1886,7 +1921,6 @@
       }
     };
 
-    // Bloquear horario específico
     document.getElementById('formBloquearHorario').addEventListener('submit', async (e) => {
       e.preventDefault();
       const bloqueo = {
